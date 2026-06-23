@@ -16,6 +16,10 @@ from src.backupEngine import BACKUP_ENGINE
 
 from src.updateMetadata import UPDATE_METADATA
 
+from src.logger import LOGGER
+
+_BACKUP_SYSTEM_VERSION = "1.0"
+
 def MAIN():
 
     yamlDictionary = EXTRACT_YAML(
@@ -30,19 +34,19 @@ def MAIN():
 
     )
 
-    GENERATE_REPOSITORY_STRUCTURE(
-
-        yamlDictionary,
-
-        outputFile="repositoryStructure.md"
-
-    )
-
     INITIALIZE_REPOSITORY(
 
         yamlDictionary
 
     )
+
+    GENERATE_REPOSITORY_STRUCTURE(
+
+        yamlDictionary,
+
+        _BACKUP_SYSTEM_VERSION
+
+    ) 
 
     scheduleSummary = CHECK_SCHEDULE(
 
@@ -71,6 +75,20 @@ def MAIN():
         yamlDictionary,
 
         backupSummary
+
+    )
+
+    LOGGER(
+
+        yamlDictionary,
+
+        scheduleSummary,
+
+        syncSummary,
+
+        backupSummary,
+
+        _BACKUP_SYSTEM_VERSION
 
     )
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 def GENERATE_REPOSITORY_STRUCTURE(
         yamlDictionary,
-        outputFile=None
+        _BACKUP_SYSTEM_VERSION
 ):
 
     repositoryLines = []
@@ -26,7 +26,11 @@ def GENERATE_REPOSITORY_STRUCTURE(
     )
 
     repositoryLines.append(
-        separator
+        f"Backup Version : {_BACKUP_SYSTEM_VERSION}"
+    )
+
+    repositoryLines.append(
+        "\n---\n"
     )
 
     totalProjects = 0
@@ -52,7 +56,39 @@ def GENERATE_REPOSITORY_STRUCTURE(
         backupFrequency = project["backupInterval"]["frequency"]
 
         repositoryLines.append(
-            f"\n\n## {projectID}"
+            f"\n## {projectID}\n"
+        )
+
+        repositoryLines.append(
+            "### Project Information\n"
+        )
+
+        repositoryLines.append(
+            "| Property | Value |"
+        )
+
+        repositoryLines.append(
+            "|----------|-------|"
+        )
+
+        repositoryLines.append(
+            f"| Description | {projectDescription} |"
+        )
+
+        repositoryLines.append(
+            f"| Comment | {projectComment} |"
+        )
+
+        repositoryLines.append(
+            f"| Enabled | {projectEnabled} |"
+        )
+
+        repositoryLines.append(
+            f"| Backup Interval | Every {backupFrequency} {backupUnit}(s) |"
+        )
+
+        repositoryLines.append(
+            "\n### Items\n"
         )
 
         repositoryLines.append(
@@ -90,15 +126,69 @@ def GENERATE_REPOSITORY_STRUCTURE(
                 ) + 1
             )
 
-            branch = (
-                "└──"
-                if itemIndex == len(items)-1
-                else "├──"
+            repositoryLines.append(
+
+                f"\n#### {item['itemID']}\n"
+
             )
 
             repositoryLines.append(
 
-                f"{branch} {item['itemID']}"
+                "| Property | Value |"
+
+            )
+
+            repositoryLines.append(
+
+                "|----------|-------|"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Description | {item['itemDescription']} |"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Comment | {item['itemComment']} |"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Classification | {itemClassification} |"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Location | `{item['itemLocation']}` |"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Enabled | {item['itemEnabled']} |"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Sync Policy | {item['syncPolicy']} |"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Exclude Folders | {item['excludeFolders']} |"
+
+            )
+
+            repositoryLines.append(
+
+                f"| Exclude Files | {item['excludeFiles']} |"
 
             )
 
@@ -157,19 +247,58 @@ def GENERATE_REPOSITORY_STRUCTURE(
         )
 
     repositoryLines.append(
-        "\n\n# Summary\n"
+        "\n---\n"
     )
 
     repositoryLines.append(
-        f"Projects : {totalProjects}"
+        "# Summary\n"
     )
 
     repositoryLines.append(
-        f"Items : {totalItems}\n"
+        "| Property | Count |"
     )
 
     repositoryLines.append(
-        "Item Classification Count\n"
+        "|----------|-------|"
+    )
+
+    repositoryLines.append(
+        f"| Projects | {totalProjects} |"
+    )
+
+    repositoryLines.append(
+        f"| Items | {totalItems} |"
+    )
+
+    repositoryLines.append(
+        "\n## Item Classification Count\n"
+    )
+
+    repositoryLines.append(
+        "| Classification | Count |"
+    )
+
+    repositoryLines.append(
+        "|----------------|-------|"
+    )
+
+    for key, value in sorted(
+            classificationCounter.items()
+    ):
+
+        repositoryLines.append(
+            f"| {key} | {value} |"
+        )
+    repositoryLines.append(
+        f"| Projects | {totalProjects} |"
+    )
+
+    repositoryLines.append(
+        f"| Items | {totalItems} |\n"
+    )
+
+    repositoryLines.append(
+        "**Item Classification Count**\n"
     )
 
     for key, value in sorted(
@@ -188,25 +317,106 @@ def GENERATE_REPOSITORY_STRUCTURE(
         repositoryText
     )
 
-    if outputFile is not None:
+    hddFile = (
 
-        outputFile = Path(
-            outputFile
+        Path(
+
+            yamlDictionary["hardDisk"]
+
         )
 
-        outputFile.parent.mkdir(
-            parents=True,
-            exist_ok=True
+        / "metadata"
+
+        / "backupRepository.md"
+
+    )
+
+    hddFile.parent.mkdir(
+
+        parents=True,
+
+        exist_ok=True
+
+    )
+
+    with open(
+
+            hddFile,
+
+            "w",
+
+            encoding="utf-8"
+
+    ) as file:
+
+        file.write(
+
+            repositoryText
+
+        )
+    localFile = (
+
+        Path(
+
+            yamlDictionary["localPC"]
+
         )
 
-        with open(
-                outputFile,
-                "w",
-                encoding="utf-8"
-        ) as file:
+        / "repository"
 
-            file.write(
-                repositoryText
-            )
+        / "backupRepository.md"
+
+    )
+
+    localFile.parent.mkdir(
+
+        parents=True,
+
+        exist_ok=True
+
+    )
+
+    with open(
+
+            localFile,
+
+            "w",
+
+            encoding="utf-8"
+
+    ) as file:
+
+        file.write(
+
+            repositoryText
+
+        )
+    print()
+
+    print("=" * 80)
+
+    print(
+
+        "REPOSITORY STRUCTURE UPDATED"
+
+    )
+
+    print("=" * 80)
+
+    print(
+
+        f"HDD : {hddFile}"
+
+    )
+
+    print(
+
+        f"Local : {localFile}"
+
+    )
+
+    print("=" * 80)
+
+    print()
 
     return repositoryText

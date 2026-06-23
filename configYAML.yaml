@@ -19,12 +19,12 @@ projects:
             syncPolicy: always
             excludeFolders: []
             excludeFiles: []
-          - itemID: e0R2
-            itemDescription: Hysing bubble rise case validated with some solver
+          - itemID: e0R3
+            itemDescription: Hysing bubble rise case validated with interIsoFoam
             itemComment: Hysing bubble rise
             itemClassification: validation
-            itemLocation: /home/user/AM24D038/Numerical_Cases/e_VOF/e0R2
+            itemLocation: /home/user/AM24D038/Numerical_Cases/e_VOF/e0R3
             itemEnabled: true
             syncPolicy: always
-            excludeFolders: ["What"]
-            excludeFiles: []
+            excludeFolders: ["processor*","[1-9]*"]
+            excludeFiles: ["log.*"]

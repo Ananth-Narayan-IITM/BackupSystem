@@ -1,6 +1,6 @@
 # BackupSystem (v1.0)
 
-Author: userName
+Author: Ananth Narayan
 
 Version: v1.0
 

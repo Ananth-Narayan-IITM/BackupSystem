@@ -1,4 +1,4 @@
-# "configYAML.yaml"
+# main.py
 
 from src.extractYAML import EXTRACT_YAML
 
@@ -8,29 +8,45 @@ from src.generateRepositoryStructure import GENERATE_REPOSITORY_STRUCTURE
 
 from src.initializeRepository import INITIALIZE_REPOSITORY
 
+from src.checkSchedule import CHECK_SCHEDULE
 
-yamlDictionary = EXTRACT_YAML(
+def MAIN():
 
-    "configYAML.yaml"
+    yamlDictionary = EXTRACT_YAML(
 
-)
+        "configYAML.yaml"
 
-VALIDATE_YAML(
+    )
 
-    yamlDictionary
+    VALIDATE_YAML(
 
-)
+        yamlDictionary
 
-GENERATE_REPOSITORY_STRUCTURE(
+    )
 
-    yamlDictionary,
+    GENERATE_REPOSITORY_STRUCTURE(
 
-    outputFile="repositoryStructure.md"
+        yamlDictionary,
 
-)
+        outputFile="repositoryStructure.md"
 
-INITIALIZE_REPOSITORY(
+    )
 
-    yamlDictionary
+    INITIALIZE_REPOSITORY(
 
-)
+        yamlDictionary
+
+    )
+
+    scheduleSummary = CHECK_SCHEDULE(
+
+        yamlDictionary
+
+    )
+
+    return scheduleSummary
+
+
+if __name__ == "__main__":
+
+    MAIN()

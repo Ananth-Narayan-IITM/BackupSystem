@@ -1,5 +1,5 @@
-hardDisk: <path/to/harddisk>
-localPC: <path/to/localPC> 
+hardDisk: /home/user/AM24D038/BackupSystem/HDD
+localPC: /home/user/AM24D038/BackupSystem/local
 projects:
     - projectID: e_VOF
       projectDescription: Contains multiphase with EHD simulations

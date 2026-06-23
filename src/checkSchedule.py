@@ -249,7 +249,7 @@ def _IS_BACKUP_DUE(
 
         return True, "Backup due"
 
-    return False, f"Backup due in {remainingDays} day(s)"
+    return False, f"{elapsedDays}/{requiredDays} day(s)"
 
 
 # =============================================================================
@@ -290,11 +290,21 @@ def _PRINT_SCHEDULE_SUMMARY(
 
         )
 
-        print(
+        if project["reason"] == "First backup":
 
-            f"Reason : {project['reason']}"
+            print(
 
-        )
+                "Progress : First backup"
+
+            )
+
+        else:
+
+            print(
+
+                f"Progress : {project['reason']}"
+
+            )
 
         print()
 

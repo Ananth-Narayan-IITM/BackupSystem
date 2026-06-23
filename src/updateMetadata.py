@@ -154,7 +154,9 @@ def _UPDATE_PROJECTS(
 
                 "lastBackup": today,
 
-                "lastStatus": "success"
+                "lastStatus": "success",
+
+                "backupCount": 1
 
             }
 
@@ -187,6 +189,7 @@ def _UPDATE_PROJECTS(
                 "lastStatus"
 
             ] = "success"
+            metadataDictionary["projects"][projectID]["backupCount"] += 1
 def _UPDATE_ITEMS(
 
         metadataDictionary,
@@ -227,7 +230,9 @@ def _UPDATE_ITEMS(
 
                 "lastBackup": today,
 
-                "lastStatus": "success"
+                "lastStatus": "success",
+
+                "backupCount": 1
 
             }
 
@@ -260,6 +265,7 @@ def _UPDATE_ITEMS(
                 "lastStatus"
 
             ] = "success"
+            metadataDictionary["items"][itemID]["backupCount"] += 1
 def _WRITE_METADATA(
 
         metadataDictionary,

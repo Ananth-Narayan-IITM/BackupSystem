@@ -14,6 +14,8 @@ from src.checkSyncPolicy import CHECK_SYNC_POLICY
 
 from src.backupEngine import BACKUP_ENGINE
 
+from src.updateMetadata import UPDATE_METADATA
+
 def MAIN():
 
     yamlDictionary = EXTRACT_YAML(
@@ -61,6 +63,14 @@ def MAIN():
         yamlDictionary,
 
         syncSummary
+
+    )
+
+    UPDATE_METADATA(
+
+        yamlDictionary,
+
+        backupSummary
 
     )
 

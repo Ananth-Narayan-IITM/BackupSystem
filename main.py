@@ -18,13 +18,35 @@ from src.updateMetadata import UPDATE_METADATA
 
 from src.logger import LOGGER
 
+import argparse
+
 _BACKUP_SYSTEM_VERSION = "1.0"
+
+def GET_ARGUMENTS():
+
+    parser = argparse.ArgumentParser(
+
+        description="BackupSystem v1.0"
+
+    )
+
+    parser.add_argument(
+
+        "yamlFile",
+
+        help="Path to YAML configuration file"
+
+    )
+
+    return parser.parse_args()
 
 def MAIN():
 
+    arguments = GET_ARGUMENTS()
+
     yamlDictionary = EXTRACT_YAML(
 
-        "configYAML.yaml"
+        arguments.yamlFile
 
     )
 

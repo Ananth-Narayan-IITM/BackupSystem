@@ -12,6 +12,8 @@ from src.verifyHDDSpace import VERIFY_HDD_SPACE
 
 from src.checkSchedule import CHECK_SCHEDULE
 
+from src.executeCommands import EXECUTE_COMMANDS
+
 from src.checkSyncPolicy import CHECK_SYNC_POLICY
 
 from src.backupEngine import BACKUP_ENGINE
@@ -89,6 +91,14 @@ def MAIN():
     spaceSummary = VERIFY_HDD_SPACE(
 
         yamlDictionary
+
+    )
+
+    commandSummary = EXECUTE_COMMANDS(
+
+        yamlDictionary,
+
+        syncSummary
 
     )
 

@@ -4,18 +4,116 @@ from pathlib import Path
 import yaml
 
 
-def EXTRACT_YAML(yamlFile):
+def EXTRACT_YAML(
 
-    yamlFile = Path(yamlFile)
+        yamlFile
+
+):
+
+    yamlFile = Path(yamlFile).resolve()
+
+    mainDictionary = _READ_YAML(
+
+        yamlFile
+
+    )
+
+    projectList = _READ_PROJECTS(
+
+        yamlFile,
+
+        mainDictionary["projects"]
+
+    )
+
+    mainDictionary["projects"] = projectList
+
+    return mainDictionary
+
+def _READ_YAML(
+        yamlFile
+):
 
     if not yamlFile.exists():
 
         raise FileNotFoundError(
-            f"YAML file not found:\n{yamlFile}"
+
+            f"\nYAML file not found:\n"
+
+            f"{yamlFile}"
+
         )
 
-    with open(yamlFile, "r", encoding="utf-8") as file:
+    try:
 
-        yamlDictionary = yaml.safe_load(file)
+        with open(
+
+                yamlFile,
+
+                "r",
+
+                encoding="utf-8"
+
+        ) as file:
+
+            yamlDictionary = yaml.safe_load(
+
+                file
+
+            )
+
+    except yaml.YAMLError as error:
+
+        raise ValueError(
+
+            f"\nInvalid YAML syntax:\n"
+
+            f"{yamlFile}\n\n"
+
+            f"{error}"
+
+        )
+
+    if yamlDictionary is None:
+
+        raise ValueError(
+
+            f"\nEmpty YAML file:\n"
+
+            f"{yamlFile}"
+
+        )
 
     return yamlDictionary
+def _READ_PROJECTS(
+        mainYaml,
+        projectFiles
+):
+
+    projectList = []
+
+    projectDirectory = mainYaml.parent
+
+    for projectFile in projectFiles:
+
+        projectPath = (
+
+            projectDirectory /
+
+            projectFile
+
+        ).resolve()
+
+        projectDictionary = _READ_YAML(
+
+            projectPath
+
+        )
+
+        projectList.append(
+
+            projectDictionary
+
+        )
+
+    return projectList

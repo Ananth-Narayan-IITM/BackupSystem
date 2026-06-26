@@ -1,0 +1,27 @@
+projectID: e_VOF
+projectDescription: Contains multiphase with EHD simulations
+projectComment: Multiphase (+ EHD)
+projectEnabled: true
+verifyBackup: true
+backupInterval: 
+  unit: week
+  frequency: 2
+items:
+  - itemID: e0R1
+    itemDescription: Hysing bubble rise case validated with interFoam
+    itemComment: Hysing bubble rise
+    itemClassification: validation
+    itemLocation: /home/user/AM24D038/Numerical_Cases/e_VOF/e0R1
+    itemEnabled: true
+    syncPolicy: always
+    excludeFolders: []
+    excludeFiles: []
+  - itemID: e0R3
+    itemDescription: Hysing bubble rise case validated with interIsoFoam
+    itemComment: Hysing bubble rise
+    itemClassification: validation
+    itemLocation: /home/user/AM24D038/Numerical_Cases/e_VOF/e0R3
+    itemEnabled: true
+    syncPolicy: always
+    excludeFolders: ["processor*","[1-9]*"]
+    excludeFiles: ["log.*"]

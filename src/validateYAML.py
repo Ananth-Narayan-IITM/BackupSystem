@@ -26,9 +26,7 @@ _ALLOWED_SYNC_POLICY = [
 
     "always",
 
-    "manual",
-
-    "protect"
+    "manual"
 
 ]
 def VALIDATE_YAML(yamlDictionary):

@@ -2,7 +2,6 @@ projectID: e_VOF
 projectDescription: Contains multiphase with EHD simulations
 projectComment: Multiphase (+ EHD)
 projectEnabled: true
-verifyBackup: true
 backupInterval: 
   unit: week
   frequency: 2

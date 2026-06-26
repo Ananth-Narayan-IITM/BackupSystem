@@ -8,6 +8,8 @@ from src.generateRepositoryStructure import GENERATE_REPOSITORY_STRUCTURE
 
 from src.initializeRepository import INITIALIZE_REPOSITORY
 
+from src.verifyHDDSpace import VERIFY_HDD_SPACE
+
 from src.checkSchedule import CHECK_SCHEDULE
 
 from src.checkSyncPolicy import CHECK_SYNC_POLICY
@@ -20,7 +22,7 @@ from src.logger import LOGGER
 
 import argparse
 
-_BACKUP_SYSTEM_VERSION = "1.0"
+_BACKUP_SYSTEM_VERSION = "2.0"
 
 def GET_ARGUMENTS():
 
@@ -84,6 +86,12 @@ def MAIN():
 
     )
 
+    spaceSummary = VERIFY_HDD_SPACE(
+
+        yamlDictionary
+
+    )
+
     backupSummary = BACKUP_ENGINE(
 
         yamlDictionary,
@@ -110,7 +118,9 @@ def MAIN():
 
         backupSummary,
 
-        _BACKUP_SYSTEM_VERSION
+        _BACKUP_SYSTEM_VERSION,
+
+        spaceSummary
 
     )
 

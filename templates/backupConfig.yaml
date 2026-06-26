@@ -22,6 +22,8 @@ items:
     itemClassification: validation # validation/parametric/development/solver/automation
     itemLocation: <path/to/folder-or-file> # for files, excludeFolders and excludeFiles makes no sense
     itemEnabled: true # Child level- true/ false
+    toggleCommand: true # perform runCommand- true/ false
+    runCommand: [<bash or file command here>]
     syncPolicy: always # always (backup when script is run)/ manual (manual backup)
     excludeFolders: [<path/to/folder1>, <path/to/folder2>, "folder*"] # can be empty as []
     excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] # use " " for parsing

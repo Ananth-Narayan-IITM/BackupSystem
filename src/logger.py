@@ -19,7 +19,9 @@ def LOGGER(
 
         backupSummary,
 
-        version="1.0"
+        _BACKUP_SYSTEM_VERSION,
+
+        spaceSummary
 
 ):
 
@@ -33,7 +35,9 @@ def LOGGER(
 
         backupSummary,
 
-        version
+        _BACKUP_SYSTEM_VERSION,
+
+        spaceSummary
 
     )
 
@@ -55,7 +59,6 @@ def LOGGER(
 
     _PRINT_LOG_SUMMARY()
 
-
 # =============================================================================
 # Build Log
 # =============================================================================
@@ -70,7 +73,9 @@ def _BUILD_LOG(
 
         backupSummary,
 
-        version
+        _BACKUP_SYSTEM_VERSION,
+
+        spaceSummary
 
 ):
 
@@ -98,7 +103,7 @@ def _BUILD_LOG(
 
         "execution": {
 
-            "version": version,
+            "version": _BACKUP_SYSTEM_VERSION,
 
             "executionTime": executionTime,
 
@@ -111,6 +116,42 @@ def _BUILD_LOG(
             "repositoryPath":
 
             yamlDictionary["hardDisk"]
+
+        },
+
+        "hddSpace": {
+
+            "status": "PASS",
+
+            "totalSpace": _FORMAT_SIZE(
+
+                spaceSummary["total"]
+
+            ),
+
+            "usedSpace": _FORMAT_SIZE(
+
+                spaceSummary["used"]
+
+            ),
+
+            "freeSpace": _FORMAT_SIZE(
+
+                spaceSummary["free"]
+
+            ),
+
+            "requiredMargin": _FORMAT_SIZE(
+
+                spaceSummary["margin"]
+
+            ),
+
+            "availableAfterMargin": _FORMAT_SIZE(
+
+                spaceSummary["availableAfterMargin"]
+
+            )
 
         },
 
@@ -253,3 +294,25 @@ def _PRINT_LOG_SUMMARY():
     print("=" * 80)
 
     print()
+
+def _FORMAT_SIZE(
+
+        size
+
+):
+
+    if size >= 1024**3:
+
+        return f"{size / 1024**3:.2f} GB"
+
+    elif size >= 1024**2:
+
+        return f"{size / 1024**2:.2f} MB"
+
+    elif size >= 1024:
+
+        return f"{size / 1024:.2f} KB"
+
+    else:
+
+        return f"{size} B"

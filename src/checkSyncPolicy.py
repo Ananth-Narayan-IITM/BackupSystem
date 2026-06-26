@@ -183,40 +183,6 @@ def _EVALUATE_ITEM(
 
         return
 
-    if syncPolicy == "protect":
-
-        if itemID not in metadataDictionary["items"]:
-
-            _ADD_ITEM(
-
-                syncSummary,
-
-                projectID,
-
-                itemID,
-
-                "BACKUP",
-
-                "First protected backup"
-
-            )
-
-        else:
-
-            _ADD_ITEM(
-
-                syncSummary,
-
-                projectID,
-
-                itemID,
-
-                "SKIPPED",
-
-                "Protected item"
-
-            )
-
 
 # =============================================================================
 # Add Item

@@ -1,12 +1,14 @@
 hardDisk: <path/to/harddisk>
 localPC: <path/to/localPC> # for storing logs, updates, metadata
+verifyHDDSpace: true
+
+
 # Item is subfolder of project, like storing validation, parametric study
 projects:
     - projectID: ID of this Project
       projectDescription: Description of Project
       projectComment: Project Comment
       projectEnabled: true # Master level- true/ false, overrides itemEnabled
-      verifyBackup: true # true/ false
       backupInterval: 
           unit: week # Backup duration, week/ month
           frequency: 2 # Frequency for duration, integer
@@ -17,6 +19,7 @@ projects:
             itemClassification: validation # validation/parametric/development/solver/automation
             itemLocation: <path/to/folder-or-file> # for files, excludeFolders and excludeFiles makes no sense
             itemEnabled: true # Child level- true/ false
-            syncPolicy: always # always (backup when script is run)/ manual (manual backup)/ protect (finalized backup)
+            syncPolicy: always # always (backup when script is run)/ manual (manual backup)
             excludeFolders: [<path/to/folder1>, <path/to/folder2>, "folder*"] # can be empty as []
             excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] # use " " for parsing
+	    retainLatestTime: true

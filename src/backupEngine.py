@@ -174,6 +174,90 @@ def _CREATE_PROJECT_FOLDER(
     )
 
     return destination
+
+from pathlib import Path
+
+
+def _GET_LATEST_TIME_FOLDER(
+
+        sourcePath
+
+):
+
+    latestFolder = None
+
+    latestValue = -1.0
+
+    for folder in sourcePath.iterdir():
+
+        if not folder.is_dir():
+
+            continue
+
+        try:
+
+            value = float(
+
+                folder.name
+
+            )
+
+        except ValueError:
+
+            continue
+
+        if value > latestValue:
+
+            latestValue = value
+
+            latestFolder = folder.name
+
+    return latestFolder
+def _COPY_LATEST_TIME(
+
+        sourcePath,
+
+        destinationPath,
+
+        latestTime
+
+):
+
+    latestSource = (
+
+        sourcePath /
+
+        latestTime
+
+    )
+
+    command = [
+
+        "rsync",
+
+        "-a",
+
+        str(
+
+            latestSource
+
+        ),
+
+        str(
+
+            destinationPath
+
+        )
+
+    ]
+
+    subprocess.run(
+
+        command,
+
+        check=True
+
+    )
 def _COPY_ITEM(
 
         item,
@@ -182,13 +266,13 @@ def _COPY_ITEM(
 
 ):
 
-    source = Path(
+    sourcePath = Path(
 
         item["itemLocation"]
 
     )
 
-    destination = (
+    destinationPath = (
 
         destination /
 
@@ -196,7 +280,7 @@ def _COPY_ITEM(
 
     )
 
-    destination.mkdir(
+    destinationPath.mkdir(
 
         parents=True,
 
@@ -228,18 +312,29 @@ def _COPY_ITEM(
 
         )
 
-    # Important:
-    # Trailing '/' copies contents only
+    # rsync copies contents only when source ends with '/'
 
-    if source.is_dir():
+    if sourcePath.is_dir():
 
-        source = str(source) + "/"
+        source = str(
+
+            sourcePath
+
+        ) + "/"
 
     else:
 
-        source = str(source)
+        source = str(
 
-    destination = str(destination) + "/"
+            sourcePath
+
+        )
+
+    destination = str(
+
+        destinationPath
+
+    ) + "/"
 
     command.extend([
 
@@ -258,6 +353,36 @@ def _COPY_ITEM(
             check=True
 
         )
+
+        # --------------------------------------------------
+        # Copy latest OpenFOAM time folder
+        # --------------------------------------------------
+
+        if item.get(
+
+                "retainLatestTime",
+
+                False
+
+        ):
+
+            latestTime = _GET_LATEST_TIME_FOLDER(
+
+                sourcePath
+
+            )
+
+            if latestTime is not None:
+
+                _COPY_LATEST_TIME(
+
+                    sourcePath,
+
+                    destinationPath,
+
+                    latestTime
+
+                )
 
         return True
 

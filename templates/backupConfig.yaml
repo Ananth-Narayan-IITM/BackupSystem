@@ -1,6 +1,7 @@
 hardDisk: <path/to/harddisk>
 localPC: <path/to/localPC> # for storing logs, updates, metadata
 verifyHDDSpace: true
+<<<<<<< HEAD
 marginSpace: <size> # in MB or GB like 10GB
 # Item is subfolder of project, like storing validation, parametric study
 projects:
@@ -26,3 +27,27 @@ items:
     excludeFolders: [<path/to/folder1>, <path/to/folder2>, "folder*"] # can be empty as []
     excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] # use " " for parsing
     retainLatestTime: true    
+=======
+
+
+# Item is subfolder of project, like storing validation, parametric study
+projects:
+    - projectID: ID of this Project
+      projectDescription: Description of Project
+      projectComment: Project Comment
+      projectEnabled: true # Master level- true/ false, overrides itemEnabled
+      backupInterval: 
+          unit: week # Backup duration, week/ month
+          frequency: 2 # Frequency for duration, integer
+      items:
+          - itemID: ID for this folder
+            itemDescription: Description of folder
+            itemComment: Easy tag to understand which item is under consideration.
+            itemClassification: validation # validation/parametric/development/solver/automation
+            itemLocation: <path/to/folder-or-file> # for files, excludeFolders and excludeFiles makes no sense
+            itemEnabled: true # Child level- true/ false
+            syncPolicy: always # always (backup when script is run)/ manual (manual backup)
+            excludeFolders: [<path/to/folder1>, <path/to/folder2>, "folder*"] # can be empty as []
+            excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] # use " " for parsing
+	    retainLatestTime: true
+>>>>>>> 3afbb042d9ad66221a33468914d983cbd612e571

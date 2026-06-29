@@ -1,12 +1,36 @@
-# BackupSystem (v1.0)
+To run the code, you can prefer to set `alias` in `~/.bashrc` as `alias BackupSystem='python3 /path/to/folder/main.py'`, then run as
+
+```python
+BackupSystem <mainConfigFile.yaml>
+```
+**Note:**
+
+This `BackupSystem` uses `rsync` to effectively determine which files to be copied which saves time over ignoring unchanged files. This `rsync` may not be available in `Windows` or similar platform. make sure `rsync` is installed (verify as `rsync --version`) before proceeding.
+
+# BackupSystem (v2.0)
 
 Author: Ananth Narayan
 
-Version: v1.0
+Version: v2.0
 
 Language: Python
 
-Purpose: Automated research backup system for CFD/OpenFOAM/DAFoam projects.
+Purpose: Automated research backup system for CFD/OpenFOAM/DAFoam projects with improved architecture.
+
+---
+
+# Changes (v1.0 to v2.0)
+- Added `executeCommand`, `runCommand` for running certain script before backup inside item folder
+- Check space (inclusive of `marginSpace`) in HDD and terminate when space is free space is less than `marginSpace`. Can be toggled with `verifyHDDSpace`
+- Combines multiple YAML files to parent YAML for modularity
+- Removed `syncPolicy: protect` as it didn't make sense later. Either take backup regularly or choose `syncPolicy: manual`
+- Removed `verifyBack` as this was not used anywhere. The logs files reveal these verification
+
+---
+
+# Backward compatability
+
+v1.0 YAML file will continue to work when deprecated keys are avoided. Refer changes log.
 
 ---
 
@@ -15,7 +39,6 @@ Purpose: Automated research backup system for CFD/OpenFOAM/DAFoam projects.
 BackupSystem is a lightweight Python-based automated backup utility developed specifically for research workflows involving:
 
 - OpenFOAM
-- DAFoam
 - CFD simulations
 - Validation cases
 - Parametric studies
@@ -28,372 +51,59 @@ The system is YAML-driven, meaning users only modify the YAML configuration file
 
 The backup engine will automatically:
 
+- Gather multiple YAML files
 - Check backup schedules
+- Check HDD space
 - Apply sync policies
 - Copy selected files/folders
 - Update metadata
 - Generate logs
 - Maintain repository information
 
-This is the first stable release (v1.0).
-
 ---
 
-# 2. Philosophy
-
-The system is built on three components.
-
-## YAML
-
-User configuration.
-
-Defines:
-
-- What to backup
-- When to backup
-- Which files/folders to exclude
-
-## JSON
-
-Repository memory.
-
-Stores:
-
-- Backup history
-- Last execution
-- Backup counts
-
-## LOGS
-
-Historical execution records.
-
-Stores:
-
-- What happened during each execution
-
----
-
-# 3. Repository Structure
-
-External HDD structure:
-
-userName/
-
-    backups/
-
-    logs/
-
-        Jun-2026/
-
-            backup_20260623_151308.json
-
-    metadata/
-
-        backupDatabase.json
-
-        backupRepository.md
-
-Local PC structure:
-
-localPC/
-
-    logs/
-
-        Jun-2026/
-
-            backup_20260623_151308.json
-
-    metadata/
-
-        backupRepository.md
-
----
-
-# 4. Project Architecture
-
-Project directory:
-
-BackupSystem/
-
-    main.py
-
-    configYAML.yaml
-
-    README.md
-
-    src/
-
-        extractYAML.py
-
-        validateYAML.py
-
-        generatebackupRepository.py
-
-        initializeRepository.py
-
-        checkSchedule.py
-
-        checkSyncPolicy.py
-
-        backupEngine.py
-
-        updateMetadata.py
-
-        logger.py
-
----
-
-# 5. Execution Pipeline
-
-```
-main.py
-
-↓
-
-EXTRACT_YAML
-
-↓
-
-VALIDATE_YAML
-
-↓
-
-INITIALIZE_REPOSITORY
-
-↓
-
-GENERATE_REPOSITORY_STRUCTURE
-
-↓
-
-CHECK_SCHEDULE
-
-↓
-
-CHECK_SYNC_POLICY
-
-↓
-
-BACKUP_ENGINE
-
-↓
-
-UPDATE_METADATA
-
-↓
-
-LOGGER
-```
----
-
-# 6. Module Description
-
-## extractYAML.py
-
-Purpose:
-
-Reads YAML file and converts it into Python dictionary.
-
-Input:
-
-configYAML.yaml
-
-Output:
-
-yamlDictionary
-
----
-
-## validateYAML.py
-
-Purpose:
-
-Validates YAML configuration.
-
-Checks:
-
-- Mandatory fields
-- Invalid options
-- Missing entries
-- Duplicate IDs
-- Invalid paths
-
----
-
-## initializeRepository.py
-
-Purpose:
-
-Creates repository structure inside HDD.
-
-Creates:
-
-backups/
-
-logs/
-
-metadata/
-
-Creates:
-
-backupDatabase.json
-
-if repository is initialized for first time.
-
----
-
-## generatebackupRepository.py
-
-Purpose:
-
-Generates backupRepository.md
-
-Stores:
-
-- Project information
-- Item information
-- Item classifications
-- Summary statistics
-
-Writes copies to:
-
-HDD/metadata/
-
-localPC/metadata/
-
----
-
-## checkSchedule.py
-
-Purpose:
-
-Determines whether projects are due for backup.
-
-Works at:
-
-Project level
-
-Example:
-
-0/14 day(s)
-
-8/14 day(s)
-
-14/14 day(s)
-
----
-
-## checkSyncPolicy.py
-
-Purpose:
-
-Determines which items should be backed up.
-
-Works at:
-
-Item level
-
-Policies:
-
-always
-
-manual
-
-protect
-
----
-
-## backupEngine.py
-
-Purpose:
-
-Performs actual backup.
-
-Uses:
-
-rsync
-
-Advantages:
-
-- Fast
-- Copies only modified files
-- Preserves timestamps
-- Preserves permissions
-- Handles large OpenFOAM cases
-
----
-
-## updateMetadata.py
-
-Purpose:
-
-Updates backupDatabase.json
-
-Updates:
-
-- lastExecution
-- backupCount
-- lastBackup
-- lastStatus
-
----
-
-## logger.py
-
-Purpose:
-
-Generates execution logs.
-
-Stores:
-
-- Schedule information
-- Sync information
-- Backup information
-
----
-
-# 7. YAML Template
-
+# 2. YAML Template
+Refer `templates/backupConfig.yaml`
 ```yaml
 hardDisk: <path/to/harddisk>
-# for storing logs, metadata
-localPC: <path/to/localPC> 
-
+localPC: <path/to/localPC> # for storing logs, updates, metadata
+verifyHDDSpace: true
+marginSpace: <size> # in MB or GB like 10GB
 # Item is subfolder of project, like storing validation, parametric study
 projects:
-    - projectID: ID of this Project
-      projectDescription: Description of Project
-      projectComment: Project Comment
-      # Master level- true/ false, overrides itemEnabled
-      projectEnabled: true 
-      # true/ false
-      verifyBackup: true 
-      backupInterval: 
-          # Backup duration, week/ month
-          unit: week 
-          # Frequency for duration, integer
-          frequency: 2 
-      items:
-          - itemID: ID for this folder
-            itemDescription: Description of folder
-            itemComment: Easy tag to understand which item is under consideration.
-            # validation/parametric/development/solver/automation
-            itemClassification: validation 
-            # for files, excludeFolders and excludeFiles makes no sense
-            itemLocation: <path/to/folder-or-file> 
-            # Child level- true/ false
-            itemEnabled: true 
-            # always (backup when script is run)/ manual (manual backup)/ protect (finalized backup)
-            syncPolicy: always 
-            # can be empty as []
-            excludeFolders: [<path/to/folder1>, <path/to/folder2>, "folder*"] 
-            # use " " for parsing
-            excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] 
+    - path-to-yaml1.yaml
+    - path-to-yaml2.yaml
+```
+
+For `path-to-yaml1.yaml`,
+
+```yaml
+projectID: ID of this Project
+projectDescription: Description of Project
+projectComment: Project Comment
+projectEnabled: true # Master level- true/ false, overrides itemEnabled
+backupInterval: 
+    unit: week # Backup duration, week/ month
+    frequency: 2 # Frequency for duration, integer
+items:
+  - itemID: unique item ID
+    itemDescription: Description of folder
+    itemComment: Easy tag to understand which item is under consideration.
+    itemClassification: validation # validation/parametric/development/solver/automation
+    itemLocation: <path/to/folder-or-file> # for files, excludeFolders and excludeFiles makes no sense
+    itemEnabled: true # Child level- true/ false
+    executeCommand: true # perform runCommand- true/ false (default)
+    runCommand: ["<bash command or run script here>"]
+    syncPolicy: always # always (backup when script is run)/ manual (manual backup)
+    excludeFolders: [<path/to/folder1>, <path/to/folder2>, "folder*"] # can be empty as []
+    excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] # use " " for parsing
+    retainLatestTime: true    
+
 ```
 
 ---
 
-# 8. YAML Field Description
+# 3. YAML Field Description
 
 ## hardDisk
 
@@ -450,11 +160,7 @@ e0R3
 
 ## projectEnabled
 
-Master switch.
-
-true
-
-false
+Master switch to take backup or not. Boolean: `true` or `false`
 
 Overrides all item settings.
 
@@ -466,25 +172,23 @@ Controls backup schedule.
 
 Example:
 
-Every 2 weeks
+- Every 2 weeks
 
-Every 1 month
+- Every 1 month
 
 ---
 
 ## itemClassification
 
-Allowed values:
+`validation`: Validation case files
 
-validation
+`parametric`: Parametric study case files
 
-parametric
+`development`: Files under development
 
-development
+`solver`: OpenFOAM solver files
 
-solver
-
-automation
+`automation`: To automate few tasks like `graphPlot` etc.,
 
 ---
 
@@ -496,21 +200,9 @@ Enables/disables item backup.
 
 ## syncPolicy
 
-always
+`always`: Backup whenever project is due.
 
-Backup whenever project is due.
-
-manual
-
-User-controlled.
-
-Currently skipped automatically.
-
-protect
-
-Backup only once.
-
-Future executions are skipped.
+`manual`: User-controlled.
 
 ---
 
@@ -521,13 +213,7 @@ Exclude folders.
 Example:
 
 ```yaml
-excludeFolders:
-
-  - processor*
-
-  - postProcessing
-
-  - "[1-9]*"
+excludeFolders: ["processor*","postProcessing","[1-9]*"]
 ```
 
 ---
@@ -539,16 +225,12 @@ Exclude files.
 Example:
 
 ```yaml
-excludeFiles:
-
-  - "*.log"
-
-  - "*.tmp"
+excludeFiles: ["*.log", "*.tmp"]
 ```
 
 ---
 
-# 9. backupDatabase.json Structure
+# 4. backupDatabase.json Structure
 
 ```json
 {
@@ -558,23 +240,17 @@ excludeFiles:
 }
 ```
 
-repository:
+repository: Stores repository information.
 
-Stores repository information.
+projects: Stores project history.
 
-projects:
-
-Stores project history.
-
-items:
-
-Stores item history.
+items: Stores item history.
 
 ---
 
 # 10. Log Structure
 
-Logs are stored monthly.
+Logs are stored in basis of monthly folders.
 
 Example:
 
@@ -598,7 +274,7 @@ Contains:
 
 Step 1
 
-Create YAML file.
+Create multiple YAML files and add it to main YAML file.
 
 Step 2
 
@@ -612,7 +288,7 @@ Step 4
 
 Run:
 
-python main.py
+`python3 main.py <configFile.yaml>`
 
 Step 5
 
@@ -624,84 +300,38 @@ Verify:
 
 ---
 
-# 12. General Do's
-
-✓ Keep itemID unique.
-
-✓ Keep projectID unique.
-
-✓ Keep HDD connected before execution.
-
-✓ Backup only finalized cases.
-
-✓ Exclude unnecessary OpenFOAM folders.
-
-✓ Use comments to describe projects.
-
-✓ Keep YAML updated.
-
-✓ Periodically verify logs.
-
-✓ Periodically verify backupRepository.md.
-
----
-
-# 13. General Don'ts
-
-✗ Do not backup entire CFD repositories unnecessarily.
-
-✗ Do not duplicate itemIDs.
-
-✗ Do not duplicate projectIDs.
-
-✗ Do not modify backupDatabase.json manually.
-
-✗ Do not delete metadata folder.
-
-✗ Do not edit logs manually.
-
-✗ Do not place backup repository inside source directories.
-
----
-
-# 14. Recommended OpenFOAM Exclusions
-
-Examples:
-
-excludeFolders:
-
-- processor*
-- postProcessing
-- "[1-9]*"
-
-excludeFiles:
-
-- "*.log"
-- "*.tmp"
-
-Modify according to case requirements.
-
----
-
-# 15. Future Improvements (v1.1)
+# 15. Future Improvements (v3.0)
 
 Planned features:
 
-- restoreBackup.py
-- diskSpaceCheck.py
-- repositoryHealth.py
-- dryRunMode.py
-- retentionCleanup.py
+- Work on `retainLatestTime` for retaining OpenFOAM solution folders
+- Option for `purgeWrite` or `forced` write with flags to force backup again
+- Implementation of doxygen- as code is getting complicated, doxygen should give some idea on code architecture
+- Refactor the whole code into presentable form
 
 ---
 
 # 16. Version History
 
-v1.0
+**v2.0**
+
+*Features:*
+
+- Added `executeCommand`, `runCommand` for running certain script before backup inside item folder
+
+- Check space (inclusive of `marginSpace`) in HDD and terminate when space is free space is less than `marginSpace`. Can be toggled with `verifyHDDSpace`
+
+- Combines multiple YAML files to parent YAML for modularity
+
+- Removed `syncPolicy: protect` as it didn't make sense later. Either take backup regularly or choose `syncPolicy: manual`
+
+- Removed `verifyBack` as this was not used anywhere. The logs files reveal these verification
+
+**v1.0**
 
 Initial stable release.
 
-Features:
+*Features:*
 
 - YAML driven
 
@@ -718,3 +348,6 @@ Features:
 - rsync backup engine
 
 - OpenFOAM friendly
+
+
+

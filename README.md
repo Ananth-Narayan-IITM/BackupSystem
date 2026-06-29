@@ -248,7 +248,7 @@ items: Stores item history.
 
 ---
 
-# 10. Log Structure
+# 5. Log Structure
 
 Logs are stored in basis of monthly folders.
 
@@ -270,7 +270,7 @@ Contains:
 
 ---
 
-# 11. General Workflow
+# 6. General Workflow
 
 Step 1
 
@@ -300,7 +300,7 @@ Verify:
 
 ---
 
-# 15. Future Improvements (v3.0)
+# 7. Future Improvements (v3.0)
 
 Planned features:
 
@@ -311,7 +311,7 @@ Planned features:
 
 ---
 
-# 16. Version History
+# 8. Version History
 
 **v2.0**
 

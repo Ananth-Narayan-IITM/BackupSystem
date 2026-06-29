@@ -53,6 +53,26 @@ def UPDATE_METADATA(
 
     )
 
+    _WRITE_METADATA(
+
+        metadataDictionary,
+
+        metadataPath = (
+
+            Path(
+
+                yamlDictionary["localPC"]
+
+            )
+
+            / "metadata"
+
+            / "backupDatabase.json"
+
+        )
+
+    )
+
     _PRINT_METADATA_SUMMARY(
 
         backupSummary

@@ -362,7 +362,7 @@ def GENERATE_REPOSITORY_STRUCTURE(
 
         )
 
-        / "repository"
+        / "metadata"
 
         / "backupRepository.md"
 

@@ -21,7 +21,9 @@ def LOGGER(
 
         _BACKUP_SYSTEM_VERSION,
 
-        spaceSummary
+        spaceSummary,
+
+        backupComment
 
 ):
 
@@ -37,7 +39,9 @@ def LOGGER(
 
         _BACKUP_SYSTEM_VERSION,
 
-        spaceSummary
+        spaceSummary,
+
+        backupComment
 
     )
 
@@ -75,7 +79,9 @@ def _BUILD_LOG(
 
         _BACKUP_SYSTEM_VERSION,
 
-        spaceSummary
+        spaceSummary,
+
+        backupComment
 
 ):
 
@@ -107,7 +113,9 @@ def _BUILD_LOG(
 
             "executionTime": executionTime,
 
-            "executionStatus": executionStatus
+            "executionStatus": executionStatus,
+
+            "comment": backupComment
 
         },
 

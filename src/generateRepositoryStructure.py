@@ -313,9 +313,9 @@ def GENERATE_REPOSITORY_STRUCTURE(
         repositoryLines
     )
 
-    print(
-        repositoryText
-    )
+    # print(
+    #     repositoryText
+    # )
 
     hddFile = (
 

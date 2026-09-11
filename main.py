@@ -109,13 +109,9 @@ def MAIN():
     # Backup preview.
     # ------------------------------------------------------------
 
-    backupConfirmed = BACKUP_PREVIEW(
-        comparisonResults
-    )
-
-    if not backupConfirmed:
-
-        return
+    backupComment = BACKUP_PREVIEW(
+            comparisonResults
+        )
 
     # ------------------------------------------------------------
     # Verify HDD space.
@@ -162,7 +158,8 @@ def MAIN():
         syncSummary,
         backupSummary,
         _BACKUP_SYSTEM_VERSION,
-        spaceSummary
+        spaceSummary,
+        backupComment
     )
 
     return scheduleSummary

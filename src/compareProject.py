@@ -191,20 +191,3 @@ def PRINT_COMPARISON_RESULT(
     print("=" * 60)
 
     print()
-
-
-if __name__ == "__main__":
-
-    # Temporary manual execution is intentionally not
-    # implemented here.
-    #
-    # COMPARE_PROJECT() receives its inputs from:
-    #
-    #     EXTRACT_YAML()
-    #             ↓
-    #        scanProject()
-    #
-    # Therefore this module is intended to be called
-    # from the main execution flow.
-
-    pass

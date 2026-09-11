@@ -51,6 +51,7 @@ def BACKUP_PREVIEW(
         print(
             "All projects are properly declared in YAML."
         )
+        backupComment = GET_BACKUP_COMMENT()
 
         print()
 
@@ -60,7 +61,7 @@ def BACKUP_PREVIEW(
 
         print()
 
-        return True
+        return backupComment
 
     # ------------------------------------------------------------
     # Attention is required.
@@ -648,6 +649,38 @@ def _HAS_UNATTENDED_ITEMS(
     return False
 
 
-if __name__ == "__main__":
+def GET_BACKUP_COMMENT():
+    """
+    Get an optional comment from the user for this backup execution.
 
-    pass
+    Returns
+    -------
+    str
+        User-provided backup comment.
+    """
+
+    print()
+
+    print("=" * 60)
+    print("BACKUP COMMENT")
+    print("=" * 60)
+
+    print()
+
+    print(
+        "Enter a comment for this backup."
+    )
+
+    print(
+        "Press Enter to leave the comment empty."
+    )
+
+    print()
+
+    comment = input(
+        "Comment: "
+    ).strip()
+
+    print()
+
+    return comment

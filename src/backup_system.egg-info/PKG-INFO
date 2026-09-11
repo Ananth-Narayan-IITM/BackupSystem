@@ -1,5 +1,0 @@
-Metadata-Version: 2.1
-Name: backup-system
-Version: 3.0.0
-Summary: YAML-driven automated backup system for research projects
-Requires-Python: >=3.8

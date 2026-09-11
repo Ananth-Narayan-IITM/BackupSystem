@@ -1,4 +1,7 @@
-Compile the code using `pip install -e .`
+# Compilation
+
+backupSystem: `pip install -e .` 
+Documentation: `doxygen Doxyfile`, pdf: `cd docs/api/pdf && make`, HTML: `firefox docs/api/html/index.html`
 
 To run the code, you can prefer to set `alias` in `~/.bashrc` as `alias BackupSystem='python3 /path/to/folder/main.py'`, then run as
 

@@ -1,0 +1,72 @@
+projectID: e_VOF
+projectDescription: Contains multiphase with EHD simulations
+projectComment: Multiphase (+ EHD)
+projectEnabled: true
+backupInterval: 
+  unit: week
+  frequency: 2
+items:
+  - itemID: e0R1
+    itemDescription: Hysing bubble rise case validated with interFoam
+    itemComment: Hysing bubble rise
+    itemClassification: validation
+    itemLocation: /home/user/AM24D038/BackupSystem/example/e0R1
+    itemEnabled: true
+    syncPolicy: always
+    executeCommand: true
+    excludeFolders: []
+    excludeFiles: []
+  - itemID: e0R3
+    itemDescription: Hysing bubble rise case validated with interIsoFoam
+    itemComment: Hysing bubble rise
+    itemClassification: validation
+    itemLocation: /home/user/AM24D038/BackupSystem/example/e0R3
+    itemEnabled: true
+    syncPolicy: always
+    excludeFolders: ["processor*","[1-9]*"]
+    excludeFiles: ["log.*"]
+  - itemID: configYAML.yaml
+    itemDescription: Hysing bubble rise case validated with interIsoFoam
+    itemComment: Hysing bubble rise
+    itemClassification: validation
+    itemLocation: /home/user/AM24D038/BackupSystem/example/configYAML.yaml
+    excludeFolders: ["processor*","[1-9]*"]
+    excludeFiles: ["log.*"]
+    syncPolicy: always
+    itemEnabled: false
+  - itemID: HDD
+    itemDescription: Hysing bubble rise case validated with interIsoFoam
+    itemComment: Hysing bubble rise
+    itemLocation: /home/user/AM24D038/BackupSystem/example/HDD
+    excludeFolders: ["processor*","[1-9]*"]
+    excludeFiles: ["log.*"]
+    syncPolicy: always
+    itemClassification: validation
+    itemEnabled: false
+  - itemID: local
+    itemDescription: Hysing bubble rise case validated with interIsoFoam
+    excludeFolders: ["processor*","[1-9]*"]
+    excludeFiles: ["log.*"]
+    itemClassification: validation
+    itemComment: Hysing bubble rise
+    itemLocation: /home/user/AM24D038/BackupSystem/example/local
+    syncPolicy: always
+    itemEnabled: false
+  - itemID: e0R2
+    itemDescription: Hysing bubble rise case validated with interIsoFoam
+    excludeFolders: ["processor*","[1-9]*"]
+    excludeFiles: ["log.*"]
+    itemClassification: validation
+    itemComment: Hysing bubble rise
+    itemLocation: /home/user/AM24D038/BackupSystem/example/e0R2
+    syncPolicy: always
+    itemEnabled: true
+  - itemID: filesYAML
+    itemDescription: Hysing bubble rise case validated with interIsoFoam
+    excludeFolders: ["processor*","[1-9]*"]
+    excludeFiles: ["log.*"]
+    itemClassification: validation
+    itemComment: Hysing bubble rise
+    itemLocation: /home/user/AM24D038/BackupSystem/example/filesYAML
+    syncPolicy: always
+    itemEnabled: false

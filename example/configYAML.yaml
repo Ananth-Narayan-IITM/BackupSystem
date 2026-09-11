@@ -1,5 +1,5 @@
-hardDisk: /home/user/AM24D038/BackupSystem/HDD
-localPC: /home/user/AM24D038/BackupSystem/local
+hardDisk: /home/user/AM24D038/BackupSystem/example/HDD
+localPC: /home/user/AM24D038/BackupSystem/example/local
 verifyHDDSpace: true
 marginSpace: 5GB
 projects:

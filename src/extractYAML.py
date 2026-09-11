@@ -110,6 +110,8 @@ def _READ_PROJECTS(
 
         )
 
+        projectDictionary["_projectYamlPath"] = projectPath
+
         projectList.append(
 
             projectDictionary

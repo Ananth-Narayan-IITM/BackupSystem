@@ -4,34 +4,21 @@ from datetime import datetime
 from pathlib import Path
 
 
-def GENERATE_REPOSITORY_STRUCTURE(
-        yamlDictionary,
-        _BACKUP_SYSTEM_VERSION
-):
+def GENERATE_REPOSITORY_STRUCTURE(yamlDictionary, _BACKUP_SYSTEM_VERSION):
 
     repositoryLines = []
 
     separator = "=" * 80
 
-    generatedTime = datetime.now().strftime(
-        "%Y-%m-%d %H:%M:%S"
-    )
+    generatedTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    repositoryLines.append(
-        "# Repository Structure\n"
-    )
+    repositoryLines.append("# Repository Structure\n")
 
-    repositoryLines.append(
-        f"Generated On : {generatedTime}\n"
-    )
+    repositoryLines.append(f"Generated On : {generatedTime}\n")
 
-    repositoryLines.append(
-        f"Backup Version : {_BACKUP_SYSTEM_VERSION}"
-    )
+    repositoryLines.append(f"Backup Version : {_BACKUP_SYSTEM_VERSION}")
 
-    repositoryLines.append(
-        "\n---\n"
-    )
+    repositoryLines.append("\n---\n")
 
     totalProjects = 0
 
@@ -40,7 +27,6 @@ def GENERATE_REPOSITORY_STRUCTURE(
     classificationCounter = {}
 
     for project in yamlDictionary["projects"]:
-
         totalProjects += 1
 
         projectID = project["projectID"]
@@ -55,365 +41,145 @@ def GENERATE_REPOSITORY_STRUCTURE(
 
         backupFrequency = project["backupInterval"]["frequency"]
 
-        repositoryLines.append(
-            f"\n## {projectID}\n"
-        )
+        repositoryLines.append(f"\n## {projectID}\n")
 
-        repositoryLines.append(
-            "### Project Information\n"
-        )
+        repositoryLines.append("### Project Information\n")
 
-        repositoryLines.append(
-            "| Property | Value |"
-        )
+        repositoryLines.append("| Property | Value |")
 
-        repositoryLines.append(
-            "|----------|-------|"
-        )
+        repositoryLines.append("|----------|-------|")
 
-        repositoryLines.append(
-            f"| Description | {projectDescription} |"
-        )
+        repositoryLines.append(f"| Description | {projectDescription} |")
 
-        repositoryLines.append(
-            f"| Comment | {projectComment} |"
-        )
+        repositoryLines.append(f"| Comment | {projectComment} |")
 
-        repositoryLines.append(
-            f"| Enabled | {projectEnabled} |"
-        )
+        repositoryLines.append(f"| Enabled | {projectEnabled} |")
 
-        repositoryLines.append(
-            f"| Backup Interval | Every {backupFrequency} {backupUnit}(s) |"
-        )
+        repositoryLines.append(f"| Backup Interval | Every {backupFrequency} {backupUnit}(s) |")
 
-        repositoryLines.append(
-            "\n### Items\n"
-        )
+        repositoryLines.append("\n### Items\n")
 
-        repositoryLines.append(
-            f"Description : {projectDescription}"
-        )
+        repositoryLines.append(f"Description : {projectDescription}")
 
-        repositoryLines.append(
-            f"Comment : {projectComment}"
-        )
+        repositoryLines.append(f"Comment : {projectComment}")
 
-        repositoryLines.append(
-            f"Enabled : {projectEnabled}"
-        )
+        repositoryLines.append(f"Enabled : {projectEnabled}")
 
-        repositoryLines.append(
-            f"Backup Interval : Every {backupFrequency} {backupUnit}(s)"
-        )
+        repositoryLines.append(f"Backup Interval : Every {backupFrequency} {backupUnit}(s)")
 
-        repositoryLines.append(
-            "\nItems\n"
-        )
+        repositoryLines.append("\nItems\n")
 
         items = project["items"]
 
         for itemIndex, item in enumerate(items):
-
             totalItems += 1
 
             itemClassification = item["itemClassification"]
 
             classificationCounter[itemClassification] = (
-                classificationCounter.get(
-                    itemClassification,
-                    0
-                ) + 1
+                classificationCounter.get(itemClassification, 0) + 1
             )
 
-            repositoryLines.append(
+            repositoryLines.append(f"\n#### {item['itemID']}\n")
 
-                f"\n#### {item['itemID']}\n"
+            repositoryLines.append("| Property | Value |")
 
-            )
+            repositoryLines.append("|----------|-------|")
 
-            repositoryLines.append(
+            repositoryLines.append(f"| Description | {item['itemDescription']} |")
 
-                "| Property | Value |"
+            repositoryLines.append(f"| Comment | {item['itemComment']} |")
 
-            )
+            repositoryLines.append(f"| Classification | {itemClassification} |")
 
-            repositoryLines.append(
+            repositoryLines.append(f"| Location | `{item['itemLocation']}` |")
 
-                "|----------|-------|"
+            repositoryLines.append(f"| Enabled | {item['itemEnabled']} |")
 
-            )
+            repositoryLines.append(f"| Sync Policy | {item['syncPolicy']} |")
 
-            repositoryLines.append(
+            repositoryLines.append(f"| Exclude Folders | {item['excludeFolders']} |")
 
-                f"| Description | {item['itemDescription']} |"
+            repositoryLines.append(f"| Exclude Files | {item['excludeFiles']} |")
 
-            )
+            repositoryLines.append(f"    Description : {item['itemDescription']}")
 
-            repositoryLines.append(
+            repositoryLines.append(f"    Comment : {item['itemComment']}")
 
-                f"| Comment | {item['itemComment']} |"
+            repositoryLines.append(f"    Classification : {itemClassification}")
 
-            )
+            repositoryLines.append(f"    Location : {item['itemLocation']}")
 
-            repositoryLines.append(
+            repositoryLines.append(f"    Enabled : {item['itemEnabled']}")
 
-                f"| Classification | {itemClassification} |"
+            repositoryLines.append(f"    Sync Policy : {item['syncPolicy']}")
 
-            )
+            repositoryLines.append(f"    Exclude Folders : {item['excludeFolders']}")
 
-            repositoryLines.append(
-
-                f"| Location | `{item['itemLocation']}` |"
-
-            )
-
-            repositoryLines.append(
-
-                f"| Enabled | {item['itemEnabled']} |"
-
-            )
-
-            repositoryLines.append(
-
-                f"| Sync Policy | {item['syncPolicy']} |"
-
-            )
-
-            repositoryLines.append(
-
-                f"| Exclude Folders | {item['excludeFolders']} |"
-
-            )
-
-            repositoryLines.append(
-
-                f"| Exclude Files | {item['excludeFiles']} |"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Description : {item['itemDescription']}"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Comment : {item['itemComment']}"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Classification : {itemClassification}"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Location : {item['itemLocation']}"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Enabled : {item['itemEnabled']}"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Sync Policy : {item['syncPolicy']}"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Exclude Folders : {item['excludeFolders']}"
-
-            )
-
-            repositoryLines.append(
-
-                f"    Exclude Files : {item['excludeFiles']}"
-
-            )
+            repositoryLines.append(f"    Exclude Files : {item['excludeFiles']}")
 
             repositoryLines.append("")
 
-        repositoryLines.append(
-            separator
-        )
+        repositoryLines.append(separator)
 
-    repositoryLines.append(
-        "\n---\n"
-    )
+    repositoryLines.append("\n---\n")
 
-    repositoryLines.append(
-        "# Summary\n"
-    )
+    repositoryLines.append("# Summary\n")
 
-    repositoryLines.append(
-        "| Property | Count |"
-    )
+    repositoryLines.append("| Property | Count |")
 
-    repositoryLines.append(
-        "|----------|-------|"
-    )
+    repositoryLines.append("|----------|-------|")
 
-    repositoryLines.append(
-        f"| Projects | {totalProjects} |"
-    )
+    repositoryLines.append(f"| Projects | {totalProjects} |")
 
-    repositoryLines.append(
-        f"| Items | {totalItems} |"
-    )
+    repositoryLines.append(f"| Items | {totalItems} |")
 
-    repositoryLines.append(
-        "\n## Item Classification Count\n"
-    )
+    repositoryLines.append("\n## Item Classification Count\n")
 
-    repositoryLines.append(
-        "| Classification | Count |"
-    )
+    repositoryLines.append("| Classification | Count |")
 
-    repositoryLines.append(
-        "|----------------|-------|"
-    )
+    repositoryLines.append("|----------------|-------|")
 
-    for key, value in sorted(
-            classificationCounter.items()
-    ):
+    for key, value in sorted(classificationCounter.items()):
+        repositoryLines.append(f"| {key} | {value} |")
+    repositoryLines.append(f"| Projects | {totalProjects} |")
 
-        repositoryLines.append(
-            f"| {key} | {value} |"
-        )
-    repositoryLines.append(
-        f"| Projects | {totalProjects} |"
-    )
+    repositoryLines.append(f"| Items | {totalItems} |\n")
 
-    repositoryLines.append(
-        f"| Items | {totalItems} |\n"
-    )
+    repositoryLines.append("**Item Classification Count**\n")
 
-    repositoryLines.append(
-        "**Item Classification Count**\n"
-    )
+    for key, value in sorted(classificationCounter.items()):
+        repositoryLines.append(f"{key} : {value}")
 
-    for key, value in sorted(
-            classificationCounter.items()
-    ):
-
-        repositoryLines.append(
-            f"{key} : {value}"
-        )
-
-    repositoryText = "\n".join(
-        repositoryLines
-    )
+    repositoryText = "\n".join(repositoryLines)
 
     # print(
     #     repositoryText
     # )
 
-    hddFile = (
+    hddFile = Path(yamlDictionary["hardDisk"]) / "metadata" / "backupRepository.md"
 
-        Path(
+    hddFile.parent.mkdir(parents=True, exist_ok=True)
 
-            yamlDictionary["hardDisk"]
+    with open(hddFile, "w", encoding="utf-8") as file:
+        file.write(repositoryText)
+    localFile = Path(yamlDictionary["localPC"]) / "metadata" / "backupRepository.md"
 
-        )
+    localFile.parent.mkdir(parents=True, exist_ok=True)
 
-        / "metadata"
-
-        / "backupRepository.md"
-
-    )
-
-    hddFile.parent.mkdir(
-
-        parents=True,
-
-        exist_ok=True
-
-    )
-
-    with open(
-
-            hddFile,
-
-            "w",
-
-            encoding="utf-8"
-
-    ) as file:
-
-        file.write(
-
-            repositoryText
-
-        )
-    localFile = (
-
-        Path(
-
-            yamlDictionary["localPC"]
-
-        )
-
-        / "metadata"
-
-        / "backupRepository.md"
-
-    )
-
-    localFile.parent.mkdir(
-
-        parents=True,
-
-        exist_ok=True
-
-    )
-
-    with open(
-
-            localFile,
-
-            "w",
-
-            encoding="utf-8"
-
-    ) as file:
-
-        file.write(
-
-            repositoryText
-
-        )
+    with open(localFile, "w", encoding="utf-8") as file:
+        file.write(repositoryText)
     print()
 
     print("=" * 80)
 
-    print(
-
-        "REPOSITORY STRUCTURE UPDATED"
-
-    )
+    print("REPOSITORY STRUCTURE UPDATED")
 
     print("=" * 80)
 
-    print(
+    print(f"HDD : {hddFile}")
 
-        f"HDD : {hddFile}"
-
-    )
-
-    print(
-
-        f"Local : {localFile}"
-
-    )
+    print(f"Local : {localFile}")
 
     print("=" * 80)
 

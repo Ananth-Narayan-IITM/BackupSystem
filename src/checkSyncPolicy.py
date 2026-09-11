@@ -7,63 +7,25 @@ import json
 # Public Function
 # =============================================================================
 
-def CHECK_SYNC_POLICY(
 
-        yamlDictionary,
+def CHECK_SYNC_POLICY(yamlDictionary, scheduleSummary):
 
-        scheduleSummary
+    syncSummary = {"backupItems": [], "skippedItems": [], "itemPolicy": []}
 
-):
+    metadataDictionary = _READ_METADATA(yamlDictionary)
 
-    syncSummary = {
-
-        "backupItems": [],
-
-        "skippedItems": [],
-
-        "itemPolicy": []
-
-    }
-
-    metadataDictionary = _READ_METADATA(
-
-        yamlDictionary
-
-    )
-
-    dueProjects = set(
-
-        scheduleSummary["dueProjects"]
-
-    )
+    dueProjects = set(scheduleSummary["dueProjects"])
 
     for project in yamlDictionary["projects"]:
-
         projectID = project["projectID"]
 
         if projectID not in dueProjects:
-
             continue
 
         for item in project["items"]:
+            _EVALUATE_ITEM(projectID, item, metadataDictionary, syncSummary)
 
-            _EVALUATE_ITEM(
-
-                projectID,
-
-                item,
-
-                metadataDictionary,
-
-                syncSummary
-
-            )
-
-    _PRINT_SYNC_SUMMARY(
-
-        syncSummary
-
-    )
+    _PRINT_SYNC_SUMMARY(syncSummary)
 
     return syncSummary
 
@@ -72,191 +34,66 @@ def CHECK_SYNC_POLICY(
 # Read Metadata
 # =============================================================================
 
-def _READ_METADATA(
 
-        yamlDictionary
+def _READ_METADATA(yamlDictionary):
 
-):
+    metadataPath = Path(yamlDictionary["hardDisk"]) / "metadata" / "backupDatabase.json"
 
-    metadataPath = (
-
-        Path(
-
-            yamlDictionary["hardDisk"]
-
-        )
-
-        / "metadata"
-
-        / "backupDatabase.json"
-
-    )
-
-    with open(
-
-            metadataPath,
-
-            "r",
-
-            encoding="utf-8"
-
-    ) as file:
-
-        return json.load(
-
-            file
-
-        )
+    with open(metadataPath, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 # =============================================================================
 # Evaluate Item
 # =============================================================================
 
-def _EVALUATE_ITEM(
 
-        projectID,
-
-        item,
-
-        metadataDictionary,
-
-        syncSummary
-
-):
+def _EVALUATE_ITEM(projectID, item, metadataDictionary, syncSummary):
 
     itemID = item["itemID"]
 
     if not item["itemEnabled"]:
-
-        _ADD_ITEM(
-
-            syncSummary,
-
-            projectID,
-
-            itemID,
-
-            "SKIPPED",
-
-            "Item disabled"
-
-        )
+        _ADD_ITEM(syncSummary, projectID, itemID, "SKIPPED", "Item disabled")
 
         return
 
     syncPolicy = item["syncPolicy"]
 
     if syncPolicy == "always":
-
-        _ADD_ITEM(
-
-            syncSummary,
-
-            projectID,
-
-            itemID,
-
-            "BACKUP",
-
-            "always"
-
-        )
+        _ADD_ITEM(syncSummary, projectID, itemID, "BACKUP", "always")
 
         return
 
     if syncPolicy == "manual":
-
-        _ADD_ITEM(
-
-            syncSummary,
-
-            projectID,
-
-            itemID,
-
-            "SKIPPED",
-
-            "manual"
-
-        )
+        _ADD_ITEM(syncSummary, projectID, itemID, "SKIPPED", "manual")
 
         return
+
 
 # =============================================================================
 # Add Item
 # =============================================================================
 
-def _ADD_ITEM(
 
-        syncSummary,
+def _ADD_ITEM(syncSummary, projectID, itemID, status, reason):
 
-        projectID,
+    itemData = {"projectID": projectID, "itemID": itemID, "status": status, "reason": reason}
 
-        itemID,
-
-        status,
-
-        reason
-
-):
-
-    itemData = {
-
-        "projectID": projectID,
-
-        "itemID": itemID,
-
-        "status": status,
-
-        "reason": reason
-
-    }
-
-    syncSummary["itemPolicy"].append(
-
-        itemData
-
-    )
+    syncSummary["itemPolicy"].append(itemData)
 
     if status == "BACKUP":
-
-        syncSummary["backupItems"].append(
-
-            {
-
-                "projectID": projectID,
-
-                "itemID": itemID
-
-            }
-
-        )
+        syncSummary["backupItems"].append({"projectID": projectID, "itemID": itemID})
 
     else:
-
-        syncSummary["skippedItems"].append(
-
-            {
-
-                "projectID": projectID,
-
-                "itemID": itemID
-
-            }
-
-        )
+        syncSummary["skippedItems"].append({"projectID": projectID, "itemID": itemID})
 
 
 # =============================================================================
 # Summary
 # =============================================================================
 
-def _PRINT_SYNC_SUMMARY(
 
-        syncSummary
-
-):
+def _PRINT_SYNC_SUMMARY(syncSummary):
 
     print()
 
@@ -269,24 +106,11 @@ def _PRINT_SYNC_SUMMARY(
     print()
 
     for item in syncSummary["itemPolicy"]:
+        print(f"{item['itemID']}")
 
-        print(
+        print(f"Status : {item['status']}")
 
-            f"{item['itemID']}"
-
-        )
-
-        print(
-
-            f"Status : {item['status']}"
-
-        )
-
-        print(
-
-            f"Reason : {item['reason']}"
-
-        )
+        print(f"Reason : {item['reason']}")
 
         print()
 

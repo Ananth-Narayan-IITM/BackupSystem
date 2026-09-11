@@ -11,99 +11,42 @@ import json
 # Public Function
 # =============================================================================
 
+
 def CHECK_SCHEDULE(yamlDictionary):
 
-    scheduleSummary = {
+    scheduleSummary = {"dueProjects": [], "skippedProjects": [], "projectSchedule": []}
 
-        "dueProjects": [],
-
-        "skippedProjects": [],
-
-        "projectSchedule": []
-
-    }
-
-    metadataDictionary = _READ_METADATA(
-
-        yamlDictionary
-
-    )
+    metadataDictionary = _READ_METADATA(yamlDictionary)
 
     for project in yamlDictionary["projects"]:
-
         projectID = project["projectID"]
 
         if not project["projectEnabled"]:
-
-            scheduleSummary["skippedProjects"].append(
-
-                projectID
-
-            )
+            scheduleSummary["skippedProjects"].append(projectID)
 
             scheduleSummary["projectSchedule"].append(
-
-                {
-
-                    "projectID": projectID,
-
-                    "status": "SKIPPED",
-
-                    "reason": "Project disabled"
-
-                }
-
+                {"projectID": projectID, "status": "SKIPPED", "reason": "Project disabled"}
             )
 
             continue
 
-        isDue, reason = _IS_BACKUP_DUE(
-
-            project,
-
-            metadataDictionary
-
-        )
+        isDue, reason = _IS_BACKUP_DUE(project, metadataDictionary)
 
         if isDue:
-
-            scheduleSummary["dueProjects"].append(
-
-                projectID
-
-            )
+            scheduleSummary["dueProjects"].append(projectID)
 
             status = "DUE"
 
         else:
-
-            scheduleSummary["skippedProjects"].append(
-
-                projectID
-
-            )
+            scheduleSummary["skippedProjects"].append(projectID)
 
             status = "SKIPPED"
 
         scheduleSummary["projectSchedule"].append(
-
-            {
-
-                "projectID": projectID,
-
-                "status": status,
-
-                "reason": reason
-
-            }
-
+            {"projectID": projectID, "status": status, "reason": reason}
         )
 
-    _PRINT_SCHEDULE_SUMMARY(
-
-        scheduleSummary
-
-    )
+    _PRINT_SCHEDULE_SUMMARY(scheduleSummary)
 
     return scheduleSummary
 
@@ -112,141 +55,51 @@ def CHECK_SCHEDULE(yamlDictionary):
 # Read Metadata
 # =============================================================================
 
-def _READ_METADATA(
 
-        yamlDictionary
+def _READ_METADATA(yamlDictionary):
 
-):
+    metadataPath = Path(yamlDictionary["hardDisk"]) / "metadata" / "backupDatabase.json"
 
-    metadataPath = (
-
-        Path(
-
-            yamlDictionary["hardDisk"]
-
-        )
-
-        / "metadata"
-
-        / "backupDatabase.json"
-
-    )
-
-    with open(
-
-            metadataPath,
-
-            "r",
-
-            encoding="utf-8"
-
-    ) as file:
-
-        return json.load(
-
-            file
-
-        )
+    with open(metadataPath, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 # =============================================================================
 # Determine Backup Schedule
 # =============================================================================
 
-def _IS_BACKUP_DUE(
 
-        project,
-
-        metadataDictionary
-
-):
+def _IS_BACKUP_DUE(project, metadataDictionary):
 
     projectID = project["projectID"]
 
-    projectData = metadataDictionary[
-
-        "projects"
-
-    ].get(
-
-        projectID
-
-    )
+    projectData = metadataDictionary["projects"].get(projectID)
 
     # First backup
 
     if projectData is None:
-
         return True, "First backup"
 
-    lastBackup = projectData.get(
-
-        "lastBackup"
-
-    )
+    lastBackup = projectData.get("lastBackup")
 
     if not lastBackup:
-
         return True, "First backup"
 
-    lastBackup = datetime.strptime(
-
-        lastBackup,
-
-        "%Y-%m-%d"
-
-    )
+    lastBackup = datetime.strptime(lastBackup, "%Y-%m-%d")
 
     today = datetime.today()
 
-    elapsedDays = (
+    elapsedDays = (today - lastBackup).days
 
-        today -
+    frequency = project["backupInterval"]["frequency"]
 
-        lastBackup
+    unit = project["backupInterval"]["unit"]
 
-    ).days
+    requiredDays = 7 * frequency if unit == "week" else 30 * frequency
 
-    frequency = project[
-
-        "backupInterval"
-
-    ][
-
-        "frequency"
-
-    ]
-
-    unit = project[
-
-        "backupInterval"
-
-    ][
-
-        "unit"
-
-    ]
-
-    requiredDays = (
-
-        7 * frequency
-
-        if unit == "week"
-
-        else 30 * frequency
-
-    )
-
-    remainingDays = (
-
-        requiredDays -
-
-        elapsedDays
-
-    )
+    remainingDays = requiredDays - elapsedDays
 
     if elapsedDays >= requiredDays:
-
         return True, "Backup due"
 
     return False, f"{elapsedDays}/{requiredDays} day(s)"
@@ -256,11 +109,8 @@ def _IS_BACKUP_DUE(
 # Print Summary
 # =============================================================================
 
-def _PRINT_SCHEDULE_SUMMARY(
 
-        scheduleSummary
-
-):
+def _PRINT_SCHEDULE_SUMMARY(scheduleSummary):
 
     print()
 
@@ -272,39 +122,16 @@ def _PRINT_SCHEDULE_SUMMARY(
 
     print()
 
-    for project in scheduleSummary[
+    for project in scheduleSummary["projectSchedule"]:
+        print(f"{project['projectID']}")
 
-            "projectSchedule"
-
-    ]:
-
-        print(
-
-            f"{project['projectID']}"
-
-        )
-
-        print(
-
-            f"Status : {project['status']}"
-
-        )
+        print(f"Status : {project['status']}")
 
         if project["reason"] == "First backup":
-
-            print(
-
-                "Progress : First backup"
-
-            )
+            print("Progress : First backup")
 
         else:
-
-            print(
-
-                f"Progress : {project['reason']}"
-
-            )
+            print(f"Progress : {project['reason']}")
 
         print()
 

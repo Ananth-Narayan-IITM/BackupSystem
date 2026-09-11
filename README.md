@@ -1,3 +1,5 @@
+Compile the code using `pip install -e .`
+
 To run the code, you can prefer to set `alias` in `~/.bashrc` as `alias BackupSystem='python3 /path/to/folder/main.py'`, then run as
 
 ```python
@@ -7,17 +9,21 @@ BackupSystem <mainConfigFile.yaml>
 
 This `BackupSystem` uses `rsync` to effectively determine which files to be copied which saves time over ignoring unchanged files. This `rsync` may not be available in `Windows` or similar platform. make sure `rsync` is installed (verify as `rsync --version`) before proceeding.
 
-# BackupSystem (v2.0)
+# BackupSystem (v3.0)
 
 Author: Ananth Narayan
 
-Version: v2.0
+Version: v3.0
 
 Language: Python
 
 Purpose: Automated research backup system for CFD/OpenFOAM/DAFoam projects with improved architecture.
 
 ---
+
+# Changes (v2.0 to v3.0)
+- Added feature to monitor untracked files, to avoid any human error during backup, this is triggerd by monitoring `itemEnabled`. All the folders inside the projectID has to be declared in YAML either as `itemEnabled = True` or `itemEnabled = False`
+- Implemented doxygen for documentation and ruff formatting
 
 # Changes (v1.0 to v2.0)
 - Added `executeCommand`, `runCommand` for running certain script before backup inside item folder
@@ -30,6 +36,7 @@ Purpose: Automated research backup system for CFD/OpenFOAM/DAFoam projects with 
 
 # Backward compatability
 
+v2.0 YAML file will continue to work provided all the itemID inside the project directory. Refer changes log.
 v1.0 YAML file will continue to work when deprecated keys are avoided. Refer changes log.
 
 ---

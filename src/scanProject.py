@@ -3,9 +3,7 @@
 from pathlib import Path
 
 
-def scanProject(
-        project
-):
+def scanProject(project):
     """
     Scan the first-level contents of the project directory.
 
@@ -33,24 +31,16 @@ def scanProject(
     projectLocations = set()
 
     for item in project["items"]:
+        itemLocation = Path(item["itemLocation"]).resolve()
 
-        itemLocation = Path(
-            item["itemLocation"]
-        ).resolve()
-
-        projectLocations.add(
-            itemLocation.parent
-        )
+        projectLocations.add(itemLocation.parent)
 
     # ------------------------------------------------------------
     # Verify that project contains items.
     # ------------------------------------------------------------
 
     if len(projectLocations) == 0:
-
-        raise ValueError(
-            f"Project '{projectID}' contains no items."
-        )
+        raise ValueError(f"Project '{projectID}' contains no items.")
 
     # ------------------------------------------------------------
     # Verify that all itemLocations belong to the same
@@ -58,14 +48,7 @@ def scanProject(
     # ------------------------------------------------------------
 
     if len(projectLocations) > 1:
-
-        locations = "\n".join(
-            f"    {location}"
-            for location in sorted(
-                projectLocations,
-                key=str
-            )
-        )
+        locations = "\n".join(f"    {location}" for location in sorted(projectLocations, key=str))
 
         raise ValueError(
             f"\nProject '{projectID}' contains itemLocations "
@@ -75,20 +58,14 @@ def scanProject(
             f"same project directory."
         )
 
-    projectLocation = next(
-        iter(projectLocations)
-    )
+    projectLocation = next(iter(projectLocations))
 
     # ------------------------------------------------------------
     # Verify that project directory exists.
     # ------------------------------------------------------------
 
     if not projectLocation.is_dir():
-
-        raise FileNotFoundError(
-            f"\nProject directory does not exist:\n"
-            f"{projectLocation}"
-        )
+        raise FileNotFoundError(f"\nProject directory does not exist:\n{projectLocation}")
 
     # ------------------------------------------------------------
     # Scan only the first level.
@@ -97,25 +74,19 @@ def scanProject(
     items = []
 
     for entry in projectLocation.iterdir():
-
         if entry.is_dir():
-
             itemType = "directory"
 
         elif entry.is_file():
-
             itemType = "file"
 
         else:
-
             itemType = "other"
 
         items.append(
             {
                 "name": entry.name,
-                "path": str(
-                    entry.resolve()
-                ),
+                "path": str(entry.resolve()),
                 "type": itemType,
             }
         )
@@ -124,9 +95,7 @@ def scanProject(
     # Keep output deterministic.
     # ------------------------------------------------------------
 
-    items.sort(
-        key=lambda item: item["name"].lower()
-    )
+    items.sort(key=lambda item: item["name"].lower())
 
     # ------------------------------------------------------------
     # Return scan result.
@@ -134,16 +103,12 @@ def scanProject(
 
     return {
         "projectID": projectID,
-        "projectLocation": str(
-            projectLocation
-        ),
+        "projectLocation": str(projectLocation),
         "items": items,
     }
 
 
-def printScanResult(
-        scanResult
-):
+def printScanResult(scanResult):
     """
     Print a compact representation of the project scan.
     """
@@ -154,42 +119,27 @@ def printScanResult(
     print("PROJECT SCAN")
     print("=" * 60)
 
-    print(
-        f"\nProject : "
-        f"{scanResult['projectID']}"
-    )
+    print(f"\nProject : {scanResult['projectID']}")
 
-    print(
-        f"\nProject location:"
-        f"\n    {scanResult['projectLocation']}"
-    )
+    print(f"\nProject location:\n    {scanResult['projectLocation']}")
 
     print("\nFirst-level items:")
 
     if not scanResult["items"]:
-
         print("    <none>")
 
     else:
-
         for item in scanResult["items"]:
-
             if item["type"] == "directory":
-
                 symbol = "DIR  "
 
             elif item["type"] == "file":
-
                 symbol = "FILE "
 
             else:
-
                 symbol = "OTHER"
 
-            print(
-                f"    {symbol:<5}"
-                f"{item['name']}"
-            )
+            print(f"    {symbol:<5}{item['name']}")
 
     print("=" * 60)
 

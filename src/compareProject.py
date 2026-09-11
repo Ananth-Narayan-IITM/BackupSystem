@@ -3,10 +3,7 @@
 from pathlib import Path
 
 
-def COMPARE_PROJECT(
-        project,
-        scanResult
-):
+def COMPARE_PROJECT(project, scanResult):
     """
     Compare project YAML items with the first-level
     filesystem scan.
@@ -36,12 +33,7 @@ def COMPARE_PROJECT(
     yamlItems = {}
 
     for item in project["items"]:
-
-        itemLocation = str(
-            Path(
-                item["itemLocation"]
-            ).resolve()
-        )
+        itemLocation = str(Path(item["itemLocation"]).resolve())
 
         yamlItems[itemLocation] = item
 
@@ -52,12 +44,7 @@ def COMPARE_PROJECT(
     filesystemItems = {}
 
     for item in scanResult["items"]:
-
-        itemLocation = str(
-            Path(
-                item["path"]
-            ).resolve()
-        )
+        itemLocation = str(Path(item["path"]).resolve())
 
         filesystemItems[itemLocation] = item
 
@@ -68,15 +55,11 @@ def COMPARE_PROJECT(
     comparisonItems = []
 
     for itemLocation, item in yamlItems.items():
-
         if itemLocation in filesystemItems:
-
             if item["itemEnabled"]:
-
                 status = "BACKUP"
 
             else:
-
                 status = "DISABLED"
 
             comparisonItems.append(
@@ -85,14 +68,11 @@ def COMPARE_PROJECT(
                     "itemLocation": itemLocation,
                     "status": status,
                     "yamlItem": item,
-                    "filesystemItem": filesystemItems[
-                        itemLocation
-                    ],
+                    "filesystemItem": filesystemItems[itemLocation],
                 }
             )
 
         else:
-
             comparisonItems.append(
                 {
                     "itemID": item["itemID"],
@@ -108,9 +88,7 @@ def COMPARE_PROJECT(
     # ------------------------------------------------------------
 
     for itemLocation, filesystemItem in filesystemItems.items():
-
         if itemLocation not in yamlItems:
-
             comparisonItems.append(
                 {
                     "itemID": None,
@@ -125,18 +103,12 @@ def COMPARE_PROJECT(
     # Determine overall project status.
     # ------------------------------------------------------------
 
-    unattendedItems = [
-        item
-        for item in comparisonItems
-        if item["status"] == "UNATTENDED"
-    ]
+    unattendedItems = [item for item in comparisonItems if item["status"] == "UNATTENDED"]
 
     if unattendedItems:
-
         projectStatus = "ATTENTION"
 
     else:
-
         projectStatus = "OK"
 
     # ------------------------------------------------------------
@@ -150,9 +122,7 @@ def COMPARE_PROJECT(
     }
 
 
-def PRINT_COMPARISON_RESULT(
-        comparisonResult
-):
+def PRINT_COMPARISON_RESULT(comparisonResult):
     """
     Print a compact comparison result.
     """
@@ -163,30 +133,18 @@ def PRINT_COMPARISON_RESULT(
     print("PROJECT COMPARISON")
     print("=" * 60)
 
-    print(
-        f"\nProject : "
-        f"{comparisonResult['projectID']}"
-    )
+    print(f"\nProject : {comparisonResult['projectID']}")
 
     print("\nItems:")
 
     if not comparisonResult["items"]:
-
         print("    <none>")
 
     else:
-
         for item in comparisonResult["items"]:
+            print(f"    {item['status']:<11}{item['itemLocation']}")
 
-            print(
-                f"    {item['status']:<11}"
-                f"{item['itemLocation']}"
-            )
-
-    print(
-        f"\nStatus  : "
-        f"{comparisonResult['projectStatus']}"
-    )
+    print(f"\nStatus  : {comparisonResult['projectStatus']}")
 
     print("=" * 60)
 

@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "backupSystem"
+version = "3.0.0"
+description = "YAML-driven automated backup system for research projects"
+requires-python = ">=3.8"
+
+
+[tool.ruff]
+
+# ---------------------------------------------------------------------------
+# General
+# ---------------------------------------------------------------------------
+
+line-length = 100
+target-version = "py39"
+
+# Directories Ruff should not inspect
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+
+# ---------------------------------------------------------------------------
+# Formatter
+# ---------------------------------------------------------------------------
+
+[tool.ruff.format]
+
+# Use double quotes for strings
+quote-style = "double"
+
+# Automatically add trailing commas where appropriate
+skip-magic-trailing-comma = false
+
+# Format code blocks inside docstrings
+docstring-code-format = true
+
+
+# ---------------------------------------------------------------------------
+# Linter
+# ---------------------------------------------------------------------------
+
+[tool.ruff.lint]
+
+# Start with the core rule sets.
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # import sorting
+    "UP",     # Python modernization
+    "B",      # flake8-bugbear
+    "SIM",    # code simplification
+]
+
+# Rules that are intentionally not enforced.
+ignore = [
+    "E501",   # line length handled by Ruff formatter
+]
+
+
+# ---------------------------------------------------------------------------
+# Per-file configuration
+# ---------------------------------------------------------------------------
+
+[tool.ruff.lint.per-file-ignores]
+
+# Tests can sometimes intentionally contain unused imports,
+# fixtures, etc.
+"tests/*" = [
+    "F401",
+]

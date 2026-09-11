@@ -7,268 +7,105 @@ import subprocess
 # Public Function
 # =============================================================================
 
-def BACKUP_ENGINE(
 
-        yamlDictionary,
-
-        syncSummary
-
-):
+def BACKUP_ENGINE(yamlDictionary, syncSummary):
 
     backupSummary = {
-
         "successfulProjects": [],
-
         "failedProjects": [],
-
         "successfulItems": [],
-
-        "failedItems": []
-
+        "failedItems": [],
     }
 
     for backupItem in syncSummary["backupItems"]:
-
         projectID = backupItem["projectID"]
 
         itemID = backupItem["itemID"]
 
-        item = _GET_ITEM(
+        item = _GET_ITEM(yamlDictionary, projectID, itemID)
 
-            yamlDictionary,
+        destination = _CREATE_PROJECT_FOLDER(yamlDictionary, projectID)
 
-            projectID,
-
-            itemID
-
-        )
-
-        destination = _CREATE_PROJECT_FOLDER(
-
-            yamlDictionary,
-
-            projectID
-
-        )
-
-        success = _COPY_ITEM(
-
-            item,
-
-            destination
-
-        )
+        success = _COPY_ITEM(item, destination)
 
         if success:
+            backupSummary["successfulItems"].append(itemID)
 
-            backupSummary["successfulItems"].append(
-
-                itemID
-
-            )
-
-            if projectID not in backupSummary[
-
-                    "successfulProjects"
-
-            ]:
-
-                backupSummary[
-
-                    "successfulProjects"
-
-                ].append(
-
-                    projectID
-
-                )
+            if projectID not in backupSummary["successfulProjects"]:
+                backupSummary["successfulProjects"].append(projectID)
 
         else:
+            backupSummary["failedItems"].append(itemID)
 
-            backupSummary["failedItems"].append(
+            if projectID not in backupSummary["failedProjects"]:
+                backupSummary["failedProjects"].append(projectID)
 
-                itemID
-
-            )
-
-            if projectID not in backupSummary[
-
-                    "failedProjects"
-
-            ]:
-
-                backupSummary[
-
-                    "failedProjects"
-
-                ].append(
-
-                    projectID
-
-                )
-
-    _PRINT_BACKUP_SUMMARY(
-
-        backupSummary
-
-    )
+    _PRINT_BACKUP_SUMMARY(backupSummary)
 
     return backupSummary
 
-def _GET_ITEM(
 
-        yamlDictionary,
-
-        projectID,
-
-        itemID
-
-):
+def _GET_ITEM(yamlDictionary, projectID, itemID):
 
     for project in yamlDictionary["projects"]:
-
         if project["projectID"] != projectID:
-
             continue
 
         for item in project["items"]:
-
             if item["itemID"] == itemID:
-
                 return item
 
-    raise ValueError(
+    raise ValueError(f"{itemID} not found.")
 
-        f"{itemID} not found."
 
-    )
+def _CREATE_PROJECT_FOLDER(yamlDictionary, projectID):
 
-def _CREATE_PROJECT_FOLDER(
+    destination = Path(yamlDictionary["hardDisk"]) / "backups" / projectID
 
-        yamlDictionary,
-
-        projectID
-
-):
-
-    destination = (
-
-        Path(
-
-            yamlDictionary["hardDisk"]
-
-        )
-
-        / "backups"
-
-        / projectID
-
-    )
-
-    destination.mkdir(
-
-        parents=True,
-
-        exist_ok=True
-
-    )
+    destination.mkdir(parents=True, exist_ok=True)
 
     return destination
-def _COPY_ITEM(
 
-        item,
 
-        destination
+def _COPY_ITEM(item, destination):
 
-):
+    source = Path(item["itemLocation"])
 
-    source = Path(
+    destination = destination / item["itemID"]
 
-        item["itemLocation"]
+    destination.mkdir(parents=True, exist_ok=True)
 
-    )
-
-    destination = (
-
-        destination /
-
-        item["itemID"]
-
-    )
-
-    destination.mkdir(
-
-        parents=True,
-
-        exist_ok=True
-
-    )
-
-    command = [
-
-        "rsync",
-
-        "-a"
-
-    ]
+    command = ["rsync", "-a"]
 
     for folder in item["excludeFolders"]:
-
-        command.append(
-
-            f"--exclude={folder}"
-
-        )
+        command.append(f"--exclude={folder}")
 
     for file in item["excludeFiles"]:
-
-        command.append(
-
-            f"--exclude={file}"
-
-        )
+        command.append(f"--exclude={file}")
 
     # Important:
     # Trailing '/' copies contents only
 
     if source.is_dir():
-
         source = str(source) + "/"
 
     else:
-
         source = str(source)
 
     destination = str(destination) + "/"
 
-    command.extend([
-
-        source,
-
-        destination
-
-    ])
+    command.extend([source, destination])
 
     try:
-
-        subprocess.run(
-
-            command,
-
-            check=True
-
-        )
+        subprocess.run(command, check=True)
 
         return True
 
     except subprocess.CalledProcessError:
-
         return False
-def _PRINT_BACKUP_SUMMARY(
 
-        backupSummary
 
-):
+def _PRINT_BACKUP_SUMMARY(backupSummary):
 
     print()
 
@@ -280,39 +117,17 @@ def _PRINT_BACKUP_SUMMARY(
 
     print()
 
-    print(
-
-        f"Successful Items : "
-
-        f"{len(backupSummary['successfulItems'])}"
-
-    )
+    print(f"Successful Items : {len(backupSummary['successfulItems'])}")
 
     for item in backupSummary["successfulItems"]:
-
-        print(
-
-            f"  - {item}"
-
-        )
+        print(f"  - {item}")
 
     print()
 
-    print(
-
-        f"Failed Items : "
-
-        f"{len(backupSummary['failedItems'])}"
-
-    )
+    print(f"Failed Items : {len(backupSummary['failedItems'])}")
 
     for item in backupSummary["failedItems"]:
-
-        print(
-
-            f"  - {item}"
-
-        )
+        print(f"  - {item}")
 
     print()
 

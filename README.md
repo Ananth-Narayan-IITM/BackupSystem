@@ -1,6 +1,7 @@
 # Compilation
 
 backupSystem: `pip install -e .` 
+
 Documentation: `doxygen Doxyfile`, pdf: `cd docs/api/pdf && make`, HTML: `firefox docs/api/html/index.html`
 
 To run the code, you can prefer to set `alias` in `~/.bashrc` as `alias BackupSystem='python3 /path/to/folder/main.py'`, then run as
@@ -23,12 +24,13 @@ Language: Python
 Purpose: Automated research backup system for CFD/OpenFOAM/DAFoam projects with improved architecture.
 
 ---
+# Changes Log
 
-# Changes (v2.0 to v3.0)
+## Changes (v2.0 to v3.0)
 - Added feature to monitor untracked files, to avoid any human error during backup, this is triggerd by monitoring `itemEnabled`. All the folders inside the projectID has to be declared in YAML either as `itemEnabled = True` or `itemEnabled = False`
 - Implemented doxygen for documentation and ruff formatting
 
-# Changes (v1.0 to v2.0)
+## Changes (v1.0 to v2.0)
 - Added `executeCommand`, `runCommand` for running certain script before backup inside item folder
 - Check space (inclusive of `marginSpace`) in HDD and terminate when space is free space is less than `marginSpace`. Can be toggled with `verifyHDDSpace`
 - Combines multiple YAML files to parent YAML for modularity

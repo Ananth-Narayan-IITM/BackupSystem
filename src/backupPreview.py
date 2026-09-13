@@ -205,6 +205,10 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
 
         backupItems = []
 
+        declaredContainerItems = []
+
+        declaredByOtherProjectItems = []
+
         for index, item in enumerate(comparisonResult["items"], start=1):
             itemWithNumber = {"number": index, "item": item}
 
@@ -217,6 +221,12 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
             elif item["status"] == "BACKUP":
                 backupItems.append(itemWithNumber)
 
+            elif item["status"] == "DECLARED_CONTAINER":
+                declaredContainerItems.append(itemWithNumber)
+                
+            elif item["status"].startswith("DECLARED-"):
+                declaredByOtherProjectItems.append(itemWithNumber)
+
         # --------------------------------------------------------
         # Display separate tables.
         # --------------------------------------------------------
@@ -226,6 +236,8 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
         _PRINT_ITEM_TABLE("DISABLED", disabledItems)
 
         _PRINT_ITEM_TABLE("BACKUP", backupItems)
+
+        _PRINT_ITEM_TABLE("DECLARED CONTAINER",declaredContainerItems)
 
         # --------------------------------------------------------
         # Navigation.

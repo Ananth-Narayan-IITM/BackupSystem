@@ -74,7 +74,18 @@ def MAIN():
 
         scanResult = scanProject(project)
 
-        comparisonResult = COMPARE_PROJECT(project, scanResult)
+        comparisonResult = COMPARE_PROJECT(project,scanResult,yamlDictionary["projects"],)
+
+        print(
+            f"\nProject: {comparisonResult['projectID']}"
+        )
+
+        for item in comparisonResult["items"]:
+
+            print(
+                f"    {item['status']:<20}"
+                f"{item['itemLocation']}"
+            )
 
         comparisonResults.append(comparisonResult)
 

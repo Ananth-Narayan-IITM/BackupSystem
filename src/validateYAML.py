@@ -6,6 +6,8 @@ _ALLOWED_ITEM_CLASSIFICATION = ["validation", "parametric", "development", "solv
 
 _ALLOWED_SYNC_POLICY = ["always", "manual"]
 
+_ALLOWED_DUPLICATE_ITEM_IDS = ["Archive"]
+
 
 def VALIDATE_YAML(yamlDictionary):
 
@@ -134,13 +136,15 @@ def _VALIDATE_ITEMS(project, itemIDs, validationSummary):
 
         itemID = item["itemID"]
 
-        if itemID in itemIDs:
+        if (
+            itemID in itemIDs
+            and itemID not in _ALLOWED_DUPLICATE_ITEM_IDS
+        ):
             raise ValueError(f"Duplicate itemID: {itemID}")
 
         itemIDs.add(itemID)
 
         _VALIDATE_ITEM(item)
-
 
 def _VALIDATE_ITEM(item):
 

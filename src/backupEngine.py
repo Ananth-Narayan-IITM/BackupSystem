@@ -75,7 +75,7 @@ def _COPY_ITEM(item, destination):
 
     destination.mkdir(parents=True, exist_ok=True)
 
-    command = ["rsync", "-a"]
+    command = ["rsync", "-a","--no-owner","--no-group","--progress"]
 
     for folder in item["excludeFolders"]:
         command.append(f"--exclude={folder}")

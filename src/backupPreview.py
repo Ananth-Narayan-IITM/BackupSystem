@@ -1,5 +1,6 @@
 # src/backupPreview.py
 
+import os
 import sys
 
 
@@ -10,16 +11,24 @@ import sys
 _BOLD = "\033[1m"
 _RESET = "\033[0m"
 
+_WIDTH = 64
+
+
+# ================================================================
+# Public function
+# ================================================================
 
 def BACKUP_PREVIEW(comparisonResults):
     """
-    Display the backup preview.
+    Display the interactive backup preview and obtain
+    permission to proceed with the backup.
 
-    If no unattended items are present, the backup proceeds
-    automatically.
+    The preview enforces three safety rules:
 
-    If unattended items are present, the user must inspect
-    the affected projects before the backup can proceed.
+    1. UNATTENDED items require correction and prevent backup.
+    2. DISABLED items/projects are shown explicitly and require
+       user confirmation before backup can proceed.
+    3. Fully declared and enabled projects can proceed normally.
 
     Parameters
     ----------
@@ -30,447 +39,1046 @@ def BACKUP_PREVIEW(comparisonResults):
     -------
     bool
         True if the backup can proceed.
+        False if the user cancels the backup.
+
+    @throws SystemExit
+        If the user terminates BackupSystem.
     """
 
     # ------------------------------------------------------------
-    # Check for unattended items.
+    # UNATTENDED items are always a hard stop.
     # ------------------------------------------------------------
 
-    if not _HAS_UNATTENDED_ITEMS(comparisonResults):
-        _PRINT_PROJECT_SUMMARY(comparisonResults)
+    if _HAS_UNATTENDED_ITEMS(comparisonResults):
 
-        print()
+        while True:
+            _CLEAR_SCREEN()
+            _PRINT_PROJECT_SUMMARY(comparisonResults)
 
-        print("All projects are properly declared in YAML.")
-        backupComment = GET_BACKUP_COMMENT()
+            command = input(
+                "\nEnter project number to inspect "
+                "(number = inspect, exit = terminate): "
+            ).strip().lower()
 
-        print()
+            if command == "exit":
+                _TERMINATE()
 
-        print("Proceeding with backup...")
+            if command == "":
+                continue
 
-        print()
+            try:
+                projectNumber = int(command)
+            except ValueError:
+                continue
 
-        return backupComment
+            if (
+                projectNumber < 1
+                or projectNumber > len(comparisonResults)
+            ):
+                continue
+
+            _INSPECT_PROJECT(
+                comparisonResults,
+                projectNumber,
+            )
+
+        # --------------------------------------------------------
+        # This point is never reached while unattended items exist.
+        # --------------------------------------------------------
 
     # ------------------------------------------------------------
-    # Attention is required.
+    # No unattended items.
     #
-    # Enter interactive preview mode.
+    # Allow the user to inspect the projects if disabled
+    # items/projects exist.
     # ------------------------------------------------------------
 
-    while True:
-        _PRINT_PROJECT_SUMMARY(comparisonResults)
+    if _HAS_DISABLED_ENTRIES(comparisonResults):
 
-        command = (
-            input("\nEnter project number to inspect (number = inspect, exit = terminate): ")
-            .strip()
-            .lower()
-        )
+        while True:
+            _CLEAR_SCREEN()
+            _PRINT_PROJECT_SUMMARY(comparisonResults)
 
-        # --------------------------------------------------------
-        # Terminate complete BackupSystem.
-        # --------------------------------------------------------
+            command = input(
+                "\nEnter project number to inspect "
+                "(number = inspect, exit = terminate): "
+            ).strip().lower()
 
-        if command == "exit":
-            print("\nBackupSystem terminated by user.\n")
+            if command == "exit":
+                _TERMINATE()
 
-            sys.exit(0)
+            if command == "":
+                continue
 
-        # --------------------------------------------------------
-        # Empty input.
-        # --------------------------------------------------------
+            # ----------------------------------------------------
+            # User can finish the preview and move to confirmation.
+            # ----------------------------------------------------
 
-        if command == "":
-            print("\nPlease enter a project number or type 'exit'.")
+            if command == "continue":
+                break
 
-            continue
+            try:
+                projectNumber = int(command)
+            except ValueError:
+                continue
 
-        # --------------------------------------------------------
-        # Convert input to project number.
-        # --------------------------------------------------------
+            if (
+                projectNumber < 1
+                or projectNumber > len(comparisonResults)
+            ):
+                continue
 
-        try:
-            projectNumber = int(command)
-
-        except ValueError:
-            print("\nInvalid input.")
-
-            continue
-
-        # --------------------------------------------------------
-        # Verify project number.
-        # --------------------------------------------------------
-
-        if projectNumber < 1 or projectNumber > len(comparisonResults):
-            print("\nInvalid project number.")
-
-            continue
+            _INSPECT_PROJECT(
+                comparisonResults,
+                projectNumber,
+            )
 
         # --------------------------------------------------------
-        # Inspect selected project.
+        # Final disabled-item/project confirmation.
         # --------------------------------------------------------
 
-        _INSPECT_PROJECT(comparisonResults, projectNumber)
+        if not _CONFIRM_DISABLED_BACKUP(comparisonResults):
+            return False
 
+    # ------------------------------------------------------------
+    # No unattended and no disabled entries.
+    #
+    # Backup can proceed normally.
+    # ------------------------------------------------------------
+
+    _CLEAR_SCREEN()
+    _PRINT_PROJECT_SUMMARY(comparisonResults)
+
+    print()
+    print("All filesystem items are declared in YAML.")
+    print("All active items are enabled for backup.")
+
+    return True
+
+
+# ================================================================
+# Main project dashboard
+# ================================================================
 
 def _PRINT_PROJECT_SUMMARY(comparisonResults):
     """
-    Print the top-level project summary.
+    Print the main backup preview dashboard.
+
+    Project numbers are generated here and are therefore
+    contiguous regardless of the original comparison indices.
     """
 
     print()
-
-    print("=" * 60)
-    print("BACKUP PREVIEW")
-    print("=" * 60)
+    print("=" * _WIDTH)
+    print("BACKUP PREVIEW".center(_WIDTH))
+    print("=" * _WIDTH)
 
     attentionProjects = []
+    disabledProjects = []
+    readyProjects = []
 
-    for index, comparisonResult in enumerate(comparisonResults, start=1):
-        unattendedCount = sum(
-            1 for item in comparisonResult["items"] if item["status"] == "UNATTENDED"
+    for comparisonResult in comparisonResults:
+
+        projectID = comparisonResult["projectID"]
+
+        # --------------------------------------------------------
+        # Entire project disabled.
+        # --------------------------------------------------------
+
+        if comparisonResult.get("projectEnabled") is False:
+            disabledProjects.append(
+                {
+                    "projectID": projectID,
+                    "reason": "PROJECT DISABLED",
+                    "comparisonResult": comparisonResult,
+                }
+            )
+            continue
+
+        # --------------------------------------------------------
+        # Count item statuses.
+        # --------------------------------------------------------
+
+        unattendedCount = _COUNT_STATUS(
+            comparisonResult,
+            "UNATTENDED",
+        )
+
+        disabledCount = _COUNT_STATUS(
+            comparisonResult,
+            "DISABLED",
         )
 
         if unattendedCount > 0:
-            attentionProjects.append((index, comparisonResult["projectID"], unattendedCount))
+            attentionProjects.append(
+                {
+                    "projectID": projectID,
+                    "count": unattendedCount,
+                    "comparisonResult": comparisonResult,
+                }
+            )
+
+        elif disabledCount > 0:
+            disabledProjects.append(
+                {
+                    "projectID": projectID,
+                    "reason": f"{disabledCount} disabled item(s)",
+                    "comparisonResult": comparisonResult,
+                }
+            )
+
+        else:
+            readyProjects.append(
+                {
+                    "projectID": projectID,
+                    "comparisonResult": comparisonResult,
+                }
+            )
 
     # ------------------------------------------------------------
-    # Projects requiring attention.
+    # Dashboard counts.
+    # ------------------------------------------------------------
+
+    print()
+    print(
+        f"  Attention required : "
+        f"{len(attentionProjects):>2} projects"
+    )
+
+    print(
+        f"  Disabled           : "
+        f"{len(disabledProjects):>2} projects"
+    )
+
+    print(
+        f"  Ready              : "
+        f"{len(readyProjects):>2} projects"
+    )
+
+    # ------------------------------------------------------------
+    # Attention required.
     # ------------------------------------------------------------
 
     if attentionProjects:
-        print()
 
+        print()
         print(f"{_BOLD}ATTENTION REQUIRED{_RESET}")
-
         print()
+        print(
+            f"{'#':>3}   "
+            f"{'PROJECT':<28} "
+            f"UNATTENDED"
+        )
+        print("-" * _WIDTH)
 
-        print(f"{'#':>3}   {'PROJECT':<20} ISSUE")
+        projectNumber = 1
 
-        print("-" * 45)
+        for entry in attentionProjects:
 
-        for projectNumber, projectID, unattendedCount in attentionProjects:
-            print(f"{projectNumber:>3}   {projectID:<20} {unattendedCount} unattended")
+            print(
+                f"{projectNumber:>3}   "
+                f"{entry['projectID']:<28} "
+                f"{entry['count']}"
+            )
 
-    else:
-        print()
-
-        print(f"{_BOLD}NO ATTENTION REQUIRED{_RESET}")
+            projectNumber += 1
 
     # ------------------------------------------------------------
-    # Projects without unattended items.
+    # Disabled projects/items.
     # ------------------------------------------------------------
 
-    otherProjectCount = len(comparisonResults) - len(attentionProjects)
-
-    if otherProjectCount > 0:
-        print()
-
-        print("ALL OTHER PROJECTS")
+    if disabledProjects:
 
         print()
+        print(f"{_BOLD}DISABLED / NOT ACTIVE{_RESET}")
+        print()
+        print(
+            f"{'#':>3}   "
+            f"{'PROJECT':<28} "
+            f"STATUS"
+        )
+        print("-" * _WIDTH)
 
-        print(f"{otherProjectCount} projects OK")
+        # Continue numbering from the previous section.
+        # If ATTENTION REQUIRED was not printed, start at 1.
+        if not attentionProjects:
+            projectNumber = 1
+
+        for entry in disabledProjects:
+
+            print(
+                f"{projectNumber:>3}   "
+                f"{entry['projectID']:<28} "
+                f"{entry['reason']}"
+            )
+
+            projectNumber += 1
+
+    # ------------------------------------------------------------
+    # Ready projects.
+    # ------------------------------------------------------------
+
+    if readyProjects:
+
+        print()
+        print(f"{_BOLD}READY{_RESET}")
+        print()
+        print(
+            f"{'#':>3}   "
+            f"{'PROJECT':<28} "
+            f"STATUS"
+        )
+        print("-" * _WIDTH)
+
+        # Continue numbering from the previous section.
+        # If this is the first displayed section, start at 1.
+        if not attentionProjects and not disabledProjects:
+            projectNumber = 1
+
+        for entry in readyProjects:
+
+            print(
+                f"{projectNumber:>3}   "
+                f"{entry['projectID']:<28} "
+                f"READY"
+            )
+
+            projectNumber += 1
+
+    # ------------------------------------------------------------
+    # Navigation.
+    # ------------------------------------------------------------
 
     print()
+    print("-" * _WIDTH)
 
-    print("=" * 60)
+    if _HAS_UNATTENDED_ITEMS(comparisonResults):
 
+        print(
+            "[number] Inspect project"
+            "                    [exit] Terminate"
+        )
+
+    elif _HAS_DISABLED_ENTRIES(comparisonResults):
+
+        print(
+            "[number] Inspect project"
+            "    [continue] Continue"
+        )
+
+        print(
+            "                                      "
+            "[exit] Terminate"
+        )
+
+    else:
+
+        print(
+            "All checks passed."
+            "                           [exit] Terminate"
+        )
+
+    print("-" * _WIDTH)
+
+
+# ================================================================
+# Project inspection
+# ================================================================
 
 def _INSPECT_PROJECT(comparisonResults, projectNumber):
     """
-    Inspect one project.
+    Display the details of one project.
+
+    The project number is based on the same ordering used
+    by the main dashboard.
     """
 
-    comparisonResult = comparisonResults[projectNumber - 1]
+    projectEntries = _GET_PROJECT_ENTRIES(
+        comparisonResults
+    )
+
+    if (
+        projectNumber < 1
+        or projectNumber > len(projectEntries)
+    ):
+        return
+
+    comparisonResult = projectEntries[
+        projectNumber - 1
+    ]
 
     while True:
+
+        _CLEAR_SCREEN()
+
+        projectID = comparisonResult["projectID"]
+
         print()
+        print(
+            f"BACKUP PREVIEW > {projectID}"
+        )
 
-        print("=" * 60)
+        print()
+        print("=" * _WIDTH)
 
-        print(f"PROJECT: {comparisonResult['projectID']}")
+        print(
+            f"PROJECT: {projectID}".center(_WIDTH)
+        )
 
-        print("=" * 60)
-
-        # --------------------------------------------------------
-        # Create separate item categories.
-        #
-        # Item numbers remain continuous across all categories.
-        # --------------------------------------------------------
-
-        unattendedItems = []
-
-        disabledItems = []
-
-        backupItems = []
-
-        declaredContainerItems = []
-
-        declaredByOtherProjectItems = []
-
-        for index, item in enumerate(comparisonResult["items"], start=1):
-            itemWithNumber = {"number": index, "item": item}
-
-            if item["status"] == "UNATTENDED":
-                unattendedItems.append(itemWithNumber)
-
-            elif item["status"] == "DISABLED":
-                disabledItems.append(itemWithNumber)
-
-            elif item["status"] == "BACKUP":
-                backupItems.append(itemWithNumber)
-
-            elif item["status"] == "DECLARED_CONTAINER":
-                declaredContainerItems.append(itemWithNumber)
-                
-            elif item["status"].startswith("DECLARED-"):
-                declaredByOtherProjectItems.append(itemWithNumber)
+        print("=" * _WIDTH)
 
         # --------------------------------------------------------
-        # Display separate tables.
+        # Project status.
         # --------------------------------------------------------
 
-        _PRINT_ITEM_TABLE("UNATTENDED", unattendedItems, attention=True)
+        if comparisonResult.get("projectEnabled") is False:
 
-        _PRINT_ITEM_TABLE("DISABLED", disabledItems)
+            projectStatus = "PROJECT DISABLED"
 
-        _PRINT_ITEM_TABLE("BACKUP", backupItems)
+        elif _HAS_UNATTENDED_FOR_PROJECT(
+            comparisonResult
+        ):
 
-        _PRINT_ITEM_TABLE("DECLARED CONTAINER",declaredContainerItems)
+            projectStatus = "ATTENTION REQUIRED"
 
-        # --------------------------------------------------------
-        # Navigation.
-        # --------------------------------------------------------
+        elif _COUNT_STATUS(
+            comparisonResult,
+            "DISABLED",
+        ) > 0:
 
-        command = (
-            input("\nEnter item number to inspect (b = back, exit = terminate): ").strip().lower()
+            projectStatus = "DISABLED ITEMS"
+
+        else:
+
+            projectStatus = "READY"
+
+        backupCount = _COUNT_STATUS(
+            comparisonResult,
+            "BACKUP",
+        )
+
+        disabledCount = _COUNT_STATUS(
+            comparisonResult,
+            "DISABLED",
+        )
+
+        missingCount = _COUNT_STATUS(
+            comparisonResult,
+            "MISSING",
+        )
+
+        unattendedCount = _COUNT_STATUS(
+            comparisonResult,
+            "UNATTENDED",
+        )
+
+        print()
+        print(
+            f"  Status               : "
+            f"{projectStatus}"
+        )
+
+        print(
+            f"  Backup               : "
+            f"{backupCount}"
+        )
+
+        print(
+            f"  Disabled             : "
+            f"{disabledCount}"
+        )
+
+        print(
+            f"  Missing              : "
+            f"{missingCount}"
+        )
+
+        print(
+            f"  Unattended           : "
+            f"{unattendedCount}"
         )
 
         # --------------------------------------------------------
-        # Terminate complete BackupSystem.
+        # Item table.
         # --------------------------------------------------------
 
-        if command == "exit":
-            print("\nBackupSystem terminated by user.\n")
-
-            sys.exit(0)
-
-        # --------------------------------------------------------
-        # Back to project summary.
-        # --------------------------------------------------------
-
-        if command == "b":
-            return
-
-        # --------------------------------------------------------
-        # Convert input to item number.
-        # --------------------------------------------------------
-
-        try:
-            itemNumber = int(command)
-
-        except ValueError:
-            print("\nInvalid input.")
-
-            continue
-
-        # --------------------------------------------------------
-        # Find item using its continuous number.
-        # --------------------------------------------------------
-
-        selectedItem = None
-
-        for index, item in enumerate(comparisonResult["items"], start=1):
-            if index == itemNumber:
-                selectedItem = item
-
-                break
-
-        if selectedItem is None:
-            print("\nInvalid item number.")
-
-            continue
-
-        # --------------------------------------------------------
-        # Inspect selected item.
-        # --------------------------------------------------------
-
-        _INSPECT_ITEM(selectedItem)
-
-
-def _PRINT_ITEM_TABLE(title, items, attention=False):
-    """
-    Print one category of project items.
-    """
-
-    if not items:
-        return
-
-    print()
-
-    if attention:
-        print(f"{_BOLD}{title}{_RESET}")
-
-    else:
-        print(f"{_BOLD}{title}{_RESET}")
-
-    print("-" * 60)
-
-    print(f"{'#':>3}   {'ITEM':<25} STATUS")
-
-    print("-" * 60)
-
-    for entry in items:
-        itemNumber = entry["number"]
-
-        item = entry["item"]
-
-        # --------------------------------------------------------
-        # YAML item exists.
-        # --------------------------------------------------------
-
-        if item["itemID"] is not None:
-            itemName = item["itemID"]
-
-        # --------------------------------------------------------
-        # Unattended filesystem item.
-        # --------------------------------------------------------
-
-        else:
-            itemName = item["filesystemItem"]["name"]
-
-        if attention:
-            print(f"{_BOLD}{itemNumber:>3}   {itemName:<25} {item['status']}{_RESET}")
-
-        else:
-            print(f"{itemNumber:>3}   {itemName:<25} {item['status']}")
-
-
-def _INSPECT_ITEM(comparisonItem):
-    """
-    Display the details of one comparison item.
-    """
-
-    while True:
         print()
+        print(
+            f"{'#':>3}   "
+            f"{'ITEM':<32} "
+            f"{'CLASSIFICATION':<16} "
+            f"STATUS"
+        )
 
-        print("=" * 60)
+        print("-" * _WIDTH)
 
-        # --------------------------------------------------------
-        # Determine item ID/name.
-        # --------------------------------------------------------
+        for index, item in enumerate(
+            comparisonResult["items"],
+            start=1,
+        ):
 
-        if comparisonItem["yamlItem"] is not None:
-            itemID = comparisonItem["yamlItem"]["itemID"]
+            itemName = _GET_ITEM_NAME(item)
 
-        else:
-            itemID = comparisonItem["filesystemItem"]["name"]
+            yamlItem = item.get("yamlItem")
 
-        print(f"ITEM: {itemID}")
+            if yamlItem is not None:
+                classification = yamlItem.get(
+                    "itemClassification",
+                    "-",
+                )
+            else:
+                classification = "-"
 
-        print("=" * 60)
-
-        # --------------------------------------------------------
-        # YAML item exists.
-        # --------------------------------------------------------
-
-        if comparisonItem["yamlItem"] is not None:
-            print()
-
-            print("Parsed YAML item")
-
-            print("-" * 60)
-
-            for key, value in comparisonItem["yamlItem"].items():
-                print(f"{key:<20}: {value}")
-
-            print("-" * 60)
-
-        # --------------------------------------------------------
-        # Unattended filesystem item.
-        # --------------------------------------------------------
-
-        else:
-            print()
-
-            print(f"{_BOLD}UNATTENDED ITEM{_RESET}")
-
-            print()
-
-            print("This item exists on the filesystem but is not declared in the YAML.")
-
-            print()
-
-            print("Filesystem location:")
-
-            print(f"    {comparisonItem['itemLocation']}")
+            print(
+                f"{index:>3}   "
+                f"{itemName:<32} "
+                f"{classification:<16} "
+                f"{item['status']}"
+            )
 
         # --------------------------------------------------------
         # Navigation.
         # --------------------------------------------------------
 
-        command = input("\nb = back, exit = terminate: ").strip().lower()
+        print()
+        print("-" * _WIDTH)
 
-        # --------------------------------------------------------
-        # Terminate complete BackupSystem.
-        # --------------------------------------------------------
+        print(
+            "[number] Inspect item"
+            "   [b] Back"
+            "   [exit] Terminate"
+        )
+
+        print("-" * _WIDTH)
+
+        command = input("> ").strip().lower()
 
         if command == "exit":
-            print("\nBackupSystem terminated by user.\n")
-
-            sys.exit(0)
-
-        # --------------------------------------------------------
-        # Back to project.
-        # --------------------------------------------------------
+            _TERMINATE()
 
         if command == "b":
             return
 
-        print("\nInvalid input.")
+        try:
+            itemNumber = int(command)
+        except ValueError:
+            continue
+
+        if (
+            itemNumber < 1
+            or itemNumber > len(
+                comparisonResult["items"]
+            )
+        ):
+            continue
+
+        _INSPECT_ITEM(
+            comparisonResult,
+            itemNumber,
+        )
+
+
+# ================================================================
+# Item inspection
+# ================================================================
+
+def _INSPECT_ITEM(
+    comparisonResult,
+    itemNumber,
+):
+    """
+    Display detailed information for one item.
+    """
+
+    item = comparisonResult["items"][
+        itemNumber - 1
+    ]
+
+    itemName = _GET_ITEM_NAME(item)
+
+    while True:
+
+        _CLEAR_SCREEN()
+
+        print()
+        print(
+            "BACKUP PREVIEW > "
+            f"{comparisonResult['projectID']} > "
+            f"{itemName}"
+        )
+
+        print()
+        print("=" * _WIDTH)
+
+        print(
+            "ITEM DETAILS".center(_WIDTH)
+        )
+
+        print("=" * _WIDTH)
+
+        print()
+        print(
+            f"  Project : "
+            f"{comparisonResult['projectID']}"
+        )
+
+        print(
+            f"  Item    : "
+            f"{itemName}"
+        )
+
+        print(
+            f"  Status  : "
+            f"{item['status']}"
+        )
+
+        # --------------------------------------------------------
+        # Filesystem information.
+        # --------------------------------------------------------
+
+        print()
+        print("FILESYSTEM")
+        print("-" * _WIDTH)
+
+        print(
+            f"Path : {item['itemLocation']}"
+        )
+
+        filesystemItem = item.get(
+            "filesystemItem"
+        )
+
+        if filesystemItem is not None:
+
+            itemType = filesystemItem.get(
+                "type"
+            )
+
+            if itemType is not None:
+                print(
+                    f"Type : {itemType}"
+                )
+
+        # --------------------------------------------------------
+        # YAML information.
+        # --------------------------------------------------------
+
+        yamlItem = item.get(
+            "yamlItem"
+        )
+
+        if yamlItem is not None:
+
+            print()
+            print("YAML CONFIGURATION")
+            print("-" * _WIDTH)
+
+            for key, value in yamlItem.items():
+
+                print(
+                    f"{key:<20}: {value}"
+                )
+
+        # --------------------------------------------------------
+        # Status-specific explanation.
+        # --------------------------------------------------------
+
+        print()
+        print("BACKUP DECISION")
+        print("-" * _WIDTH)
+
+        status = item["status"]
+
+        if status == "BACKUP":
+
+            print(
+                "This item is declared in YAML "
+                "and enabled for backup."
+            )
+
+            print(
+                "This item will be included in "
+                "the backup."
+            )
+
+        elif status == "DISABLED":
+
+            print(
+                "This item is declared in YAML."
+            )
+
+            print(
+                "itemEnabled is set to false."
+            )
+
+            print(
+                "No backup will be taken for this item."
+            )
+
+        elif status == "UNATTENDED":
+
+            print(
+                "This filesystem item exists but "
+                "is not declared in YAML."
+            )
+
+            print()
+            print(
+                "Backup cannot proceed until this "
+                "item is intentionally handled."
+            )
+
+        elif status == "MISSING":
+
+            print(
+                "This item is declared in YAML but "
+                "does not currently exist on the filesystem."
+            )
+
+            print(
+                "No backup will be taken for this item."
+            )
+
+        elif status == "DECLARED_CONTAINER":
+
+            print(
+                "This is a structural filesystem "
+                "container for declared YAML items."
+            )
+
+        elif status.startswith("DECLARED-"):
+
+            declaringProject = status[
+                len("DECLARED-"):
+            ]
+
+            print(
+                "This filesystem item is declared "
+                "by another project."
+            )
+
+            print(
+                f"Declaring project : "
+                f"{declaringProject}"
+            )
+
+        # --------------------------------------------------------
+        # Navigation.
+        # --------------------------------------------------------
+
+        print()
+        print("-" * _WIDTH)
+
+        print(
+            "[b] Back                                      "
+            "[exit] Terminate"
+        )
+
+        print("-" * _WIDTH)
+
+        command = input("> ").strip().lower()
+
+        if command == "exit":
+            _TERMINATE()
+
+        if command == "b":
+            return
+
+
+# ================================================================
+# Final disabled confirmation
+# ================================================================
+
+def _CONFIRM_DISABLED_BACKUP(comparisonResults):
+    """
+    Ask the user for explicit confirmation when declared
+    projects or items are disabled.
+
+    Returns
+    -------
+    bool
+        True if the user explicitly confirms.
+        False otherwise.
+    """
+
+    _CLEAR_SCREEN()
+
+    print()
+    print("=" * _WIDTH)
+
+    print(
+        "BACKUP DECISION".center(_WIDTH)
+    )
+
+    print("=" * _WIDTH)
+
+    print()
+    print(
+        "All filesystem items are declared in YAML."
+    )
+
+    print()
+    print(
+        "However, some declared projects or items "
+        "are disabled."
+    )
+
+    print()
+    print("DISABLED / NOT ACTIVE")
+    print("-" * _WIDTH)
+
+    for comparisonResult in comparisonResults:
+
+        projectID = comparisonResult[
+            "projectID"
+        ]
+
+        if comparisonResult.get(
+            "projectEnabled"
+        ) is False:
+
+            print()
+            print(
+                f"Project: {projectID}"
+            )
+
+            print(
+                "    PROJECT DISABLED"
+            )
+
+            continue
+
+        disabledItems = [
+            item
+            for item in comparisonResult["items"]
+            if item["status"] == "DISABLED"
+        ]
+
+        if disabledItems:
+
+            print()
+            print(
+                f"Project: {projectID}"
+            )
+
+            for item in disabledItems:
+
+                print(
+                    f"    {_GET_ITEM_NAME(item)}"
+                )
+
+    print()
+    print("-" * _WIDTH)
+
+    print(
+        "These projects/items are intentionally "
+        "excluded from backup."
+    )
+
+    print()
+    print(
+        "No backup will be taken for them."
+    )
+
+    print()
+    print(
+        "Proceed with backup of all ENABLED items?"
+    )
+
+    print()
+    print(
+        "    [y] Yes, proceed"
+    )
+
+    print(
+        "    [n] No, cancel"
+    )
+
+    print()
+    print("-" * _WIDTH)
+
+    while True:
+
+        command = input("> ").strip().lower()
+
+        if command == "y":
+
+            print()
+            print(
+                "Backup confirmed by user."
+            )
+
+            return True
+
+        if command == "n":
+
+            print()
+            print(
+                "Backup cancelled by user."
+            )
+
+            return False
+
+
+# ================================================================
+# Helper functions
+# ================================================================
+
+def _GET_PROJECT_ENTRIES(comparisonResults):
+    """
+    Return projects in the same order and numbering
+    used by the dashboard.
+    """
+
+    attentionProjects = []
+    disabledProjects = []
+    readyProjects = []
+
+    for comparisonResult in comparisonResults:
+
+        if comparisonResult.get(
+            "projectEnabled"
+        ) is False:
+
+            disabledProjects.append(
+                comparisonResult
+            )
+
+            continue
+
+        if _HAS_UNATTENDED_FOR_PROJECT(
+            comparisonResult
+        ):
+
+            attentionProjects.append(
+                comparisonResult
+            )
+
+        elif _COUNT_STATUS(
+            comparisonResult,
+            "DISABLED",
+        ) > 0:
+
+            disabledProjects.append(
+                comparisonResult
+            )
+
+        else:
+
+            readyProjects.append(
+                comparisonResult
+            )
+
+    return (
+        attentionProjects
+        + disabledProjects
+        + readyProjects
+    )
+
+
+def _GET_ITEM_NAME(item):
+    """
+    Return the display name of a comparison item.
+    """
+
+    if item.get("itemID") is not None:
+        return item["itemID"]
+
+    filesystemItem = item.get(
+        "filesystemItem"
+    )
+
+    if filesystemItem is not None:
+
+        return filesystemItem.get(
+            "name",
+            "<unknown>",
+        )
+
+    return "<unknown>"
+
+
+def _COUNT_STATUS(
+    comparisonResult,
+    status,
+):
+    """
+    Count items having the requested status.
+    """
+
+    return sum(
+        1
+        for item in comparisonResult["items"]
+        if item["status"] == status
+    )
+
+
+def _HAS_UNATTENDED_FOR_PROJECT(
+    comparisonResult,
+):
+    """
+    Return True if a project contains an
+    unattended item.
+    """
+
+    return _COUNT_STATUS(
+        comparisonResult,
+        "UNATTENDED",
+    ) > 0
 
 
 def _HAS_UNATTENDED_ITEMS(comparisonResults):
     """
-    Return True if any project contains an
-    unattended filesystem item.
+    Return True if any project contains
+    an unattended filesystem item.
+    """
+
+    return any(
+        _HAS_UNATTENDED_FOR_PROJECT(
+            comparisonResult
+        )
+        for comparisonResult in comparisonResults
+    )
+
+
+def _HAS_DISABLED_ENTRIES(comparisonResults):
+    """
+    Return True if any project or item is disabled.
     """
 
     for comparisonResult in comparisonResults:
-        for item in comparisonResult["items"]:
-            if item["status"] == "UNATTENDED":
-                return True
+
+        if comparisonResult.get(
+            "projectEnabled"
+        ) is False:
+
+            return True
+
+        if _COUNT_STATUS(
+            comparisonResult,
+            "DISABLED",
+        ) > 0:
+
+            return True
 
     return False
 
 
-def GET_BACKUP_COMMENT():
+def _CLEAR_SCREEN():
     """
-    Get an optional comment from the user for this backup execution.
-
-    Returns
-    -------
-    str
-        User-provided backup comment.
+    Clear the terminal screen.
     """
 
-    print()
+    os.system("clear")
 
-    print("=" * 60)
-    print("BACKUP COMMENT")
-    print("=" * 60)
 
-    print()
-
-    print("Enter a comment for this backup.")
-
-    print("Press Enter to leave the comment empty.")
+def _TERMINATE():
+    """
+    Terminate BackupSystem immediately.
+    """
 
     print()
-
-    comment = input("Comment: ").strip()
-
+    print("BackupSystem terminated by user.")
     print()
 
-    return comment
+    sys.exit(0)

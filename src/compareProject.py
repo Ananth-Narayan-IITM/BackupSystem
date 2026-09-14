@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+_SYSTEM_AUTO_BACKUP_NAMES = {".git",".venv"}
 
 def _BUILD_GLOBAL_DECLARATIONS(allProjects):
     """
@@ -127,6 +128,73 @@ def _GET_DECLARING_PROJECT(
 
     return None
 
+def _IS_MASTER_CONTAINER(
+    filesystemPath,
+    globalDeclarations,
+):
+    """
+    Determine whether a filesystem directory is a master container.
+
+    A master container is an undeclared directory whose immediate
+    child directory is explicitly declared as a YAML item by at least
+    one project.
+
+    A file declaration does not create a master container.
+
+    Parameters
+    ----------
+    filesystemPath : Path
+        Filesystem directory being classified.
+
+    globalDeclarations : dict
+        Global filesystem declaration map.
+
+    Returns
+    -------
+    bool
+        True if the directory is a master container.
+    """
+
+    if not filesystemPath.is_dir():
+        return False
+
+    filesystemPath = filesystemPath.resolve()
+
+    for declaredPath in globalDeclarations:
+
+        declaredDirectory = Path(
+            declaredPath
+        ).resolve()
+
+        # Only directory declarations can create a master container.
+        if not declaredDirectory.is_dir():
+            continue
+
+        # The declared directory must be an immediate child.
+        if declaredDirectory.parent != filesystemPath:
+            continue
+
+        return True
+
+    return False
+
+def _IS_AUTO_BACKUP(filesystemPath):
+    """
+    Determine whether a filesystem item is automatically included
+    in the backup by BackupSystem.
+
+    Parameters
+    ----------
+    filesystemPath : Path
+        Filesystem item being classified.
+
+    Returns
+    -------
+    bool
+        True if the item is automatically backed up.
+    """
+
+    return filesystemPath.name in _SYSTEM_AUTO_BACKUP_NAMES
 
 def COMPARE_PROJECT(
     project,
@@ -395,13 +463,26 @@ def COMPARE_PROJECT(
 
                     pass
 
-        # --------------------------------------------------------
+        # ------------------------------------------------------------
         # Determine filesystem status.
-        # --------------------------------------------------------
+        # ------------------------------------------------------------
 
-        if containsYamlItem:
+        if _IS_AUTO_BACKUP(
+            filesystemPath,
+        ):
+
+            status = "AUTO-BACKUP"
+
+        elif containsYamlItem:
 
             status = "DECLARED_CONTAINER"
+
+        elif _IS_MASTER_CONTAINER(
+            filesystemPath,
+            globalDeclarations,
+        ):
+
+            status = "MASTER_CONTAINER"
 
         else:
 

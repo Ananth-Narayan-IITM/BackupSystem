@@ -66,34 +66,69 @@ def MAIN():
     comparisonResults = []
 
     for project in yamlDictionary["projects"]:
+
         projectID = project["projectID"]
 
-        # Only inspect projects that are due for backup.
+        # ------------------------------------------------------------
+        # Disabled project.
+        #
+        # Do not scan it or perform any backup preparation.
+        # Add it only to the preview so the user can see that
+        # the project exists but is intentionally disabled.
+        # ------------------------------------------------------------
+
+        if not project["projectEnabled"]:
+
+            comparisonResults.append(
+                {
+                    "projectID": projectID,
+                    "projectEnabled": False,
+                    "projectStatus": "DISABLED",
+                    "items": [
+                        {
+                            "itemID": item["itemID"],
+                            "itemLocation": item["itemLocation"],
+                            "status": "DISABLED",
+                            "yamlItem": item,
+                            "filesystemItem": None,
+                        }
+                        for item in project["items"]
+                    ],
+                }
+            )
+
+            continue
+
+        # ------------------------------------------------------------
+        # Only scan enabled projects which are due for backup.
+        # ------------------------------------------------------------
+
         if projectID not in scheduleSummary["dueProjects"]:
             continue
 
         scanResult = scanProject(project)
 
-        comparisonResult = COMPARE_PROJECT(project,scanResult,yamlDictionary["projects"],)
-
-        print(
-            f"\nProject: {comparisonResult['projectID']}"
+        comparisonResult = COMPARE_PROJECT(
+            project,
+            scanResult,
+            yamlDictionary["projects"],
         )
 
-        for item in comparisonResult["items"]:
+        comparisonResult["projectEnabled"] = True
 
-            print(
-                f"    {item['status']:<20}"
-                f"{item['itemLocation']}"
-            )
-
-        comparisonResults.append(comparisonResult)
+        comparisonResults.append(
+            comparisonResult
+        )
 
     # ------------------------------------------------------------
     # Backup preview.
     # ------------------------------------------------------------
 
     backupComment = BACKUP_PREVIEW(comparisonResults)
+
+
+    if backupComment is False:
+        return
 
     # ------------------------------------------------------------
     # Verify HDD space.

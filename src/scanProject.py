@@ -38,27 +38,20 @@ def _GET_SCAN_SCOPES(project):
     # ------------------------------------------------------------
 
     for item in project["items"]:
-
-        itemLocation = Path(
-            item["itemLocation"]
-        ).resolve()
+        itemLocation = Path(item["itemLocation"]).resolve()
 
         parentDirectory = itemLocation.parent
 
         if parentDirectory not in declarationsByParent:
-
             declarationsByParent[parentDirectory] = []
 
-        declarationsByParent[parentDirectory].append(
-            itemLocation
-        )
+        declarationsByParent[parentDirectory].append(itemLocation)
 
     # ------------------------------------------------------------
     # Determine scan scopes.
     # ------------------------------------------------------------
 
     for parentDirectory, declarations in declarationsByParent.items():
-
         # --------------------------------------------------------
         # Multiple declarations in the same directory.
         #
@@ -73,10 +66,7 @@ def _GET_SCAN_SCOPES(project):
         # --------------------------------------------------------
 
         if len(declarations) >= 2:
-
-            scanScopes.append(
-                parentDirectory
-            )
+            scanScopes.append(parentDirectory)
 
             continue
 
@@ -98,10 +88,7 @@ def _GET_SCAN_SCOPES(project):
         # --------------------------------------------------------
 
         if declaration.is_dir():
-
-            scanScopes.append(
-                declaration
-            )
+            scanScopes.append(declaration)
 
         # --------------------------------------------------------
         # If the single declaration is a file, do NOT scan its
@@ -118,9 +105,7 @@ def _GET_SCAN_SCOPES(project):
     # Remove duplicate scopes.
     # ------------------------------------------------------------
 
-    scanScopes = list(
-        set(scanScopes)
-    )
+    scanScopes = list(set(scanScopes))
 
     # ------------------------------------------------------------
     # Remove nested scopes.
@@ -139,32 +124,24 @@ def _GET_SCAN_SCOPES(project):
         scanScopes,
         key=lambda path: len(path.parts),
     ):
-
         alreadyCovered = False
 
         for existingScope in finalScopes:
-
             try:
-
-                scope.relative_to(
-                    existingScope
-                )
+                scope.relative_to(existingScope)
 
                 alreadyCovered = True
 
                 break
 
             except ValueError:
-
                 pass
 
         if not alreadyCovered:
-
-            finalScopes.append(
-                scope
-            )
+            finalScopes.append(scope)
 
     return finalScopes
+
 
 def scanProject(project):
     """
@@ -204,29 +181,18 @@ def scanProject(project):
     # Determine scan scopes.
     # ------------------------------------------------------------
 
-    scanScopes = _GET_SCAN_SCOPES(
-        project
-    )
+    scanScopes = _GET_SCAN_SCOPES(project)
 
     # ------------------------------------------------------------
     # Verify scan scopes.
     # ------------------------------------------------------------
 
     for scanScope in scanScopes:
-
         if not scanScope.exists():
-
-            raise FileNotFoundError(
-                f"\nScan scope does not exist:\n"
-                f"{scanScope}"
-            )
+            raise FileNotFoundError(f"\nScan scope does not exist:\n{scanScope}")
 
         if not scanScope.is_dir():
-
-            raise NotADirectoryError(
-                f"\nScan scope is not a directory:\n"
-                f"{scanScope}"
-            )
+            raise NotADirectoryError(f"\nScan scope is not a directory:\n{scanScope}")
 
     # ------------------------------------------------------------
     # A project containing only file declarations has no
@@ -242,19 +208,14 @@ def scanProject(project):
     # ------------------------------------------------------------
 
     for scanScope in scanScopes:
-
         for entry in scanScope.iterdir():
-
             if entry.is_dir():
-
                 itemType = "directory"
 
             elif entry.is_file():
-
                 itemType = "file"
 
             else:
-
                 itemType = "other"
 
             items.append(
@@ -275,20 +236,15 @@ def scanProject(project):
     uniqueItems = {}
 
     for item in items:
-
         uniqueItems[item["path"]] = item
 
-    items = list(
-        uniqueItems.values()
-    )
+    items = list(uniqueItems.values())
 
     # ------------------------------------------------------------
     # Keep output deterministic.
     # ------------------------------------------------------------
 
-    items.sort(
-        key=lambda item: item["path"].lower()
-    )
+    items.sort(key=lambda item: item["path"].lower())
 
     # ------------------------------------------------------------
     # Return scan result.
@@ -296,10 +252,7 @@ def scanProject(project):
 
     return {
         "projectID": projectID,
-        "scanScopes": [
-            str(scope)
-            for scope in scanScopes
-        ],
+        "scanScopes": [str(scope) for scope in scanScopes],
         "items": items,
     }
 
@@ -320,51 +273,34 @@ def printScanResult(scanResult):
     print("PROJECT SCAN")
     print("=" * 60)
 
-    print(
-        f"\nProject : "
-        f"{scanResult['projectID']}"
-    )
+    print(f"\nProject : {scanResult['projectID']}")
 
     print("\nScan scopes:")
 
     if not scanResult["scanScopes"]:
-
         print("    <none>")
 
     else:
-
         for scanScope in scanResult["scanScopes"]:
-
-            print(
-                f"    {scanScope}"
-            )
+            print(f"    {scanScope}")
 
     print("\nFirst-level items:")
 
     if not scanResult["items"]:
-
         print("    <none>")
 
     else:
-
         for item in scanResult["items"]:
-
             if item["type"] == "directory":
-
                 symbol = "DIR  "
 
             elif item["type"] == "file":
-
                 symbol = "FILE "
 
             else:
-
                 symbol = "OTHER"
 
-            print(
-                f"    {symbol:<5}"
-                f"{item['name']}"
-            )
+            print(f"    {symbol:<5}{item['name']}")
 
     print("=" * 60)
 

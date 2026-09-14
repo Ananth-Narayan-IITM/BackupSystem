@@ -18,6 +18,7 @@ _WIDTH = 64
 # Public function
 # ================================================================
 
+
 def BACKUP_PREVIEW(comparisonResults):
     """
     Display the interactive backup preview and obtain
@@ -50,15 +51,15 @@ def BACKUP_PREVIEW(comparisonResults):
     # ------------------------------------------------------------
 
     if _HAS_UNATTENDED_ITEMS(comparisonResults):
-
         while True:
             _CLEAR_SCREEN()
             _PRINT_PROJECT_SUMMARY(comparisonResults)
 
-            command = input(
-                "\nEnter project number to inspect "
-                "(number = inspect, exit = terminate): "
-            ).strip().lower()
+            command = (
+                input("\nEnter project number to inspect (number = inspect, exit = terminate): ")
+                .strip()
+                .lower()
+            )
 
             if command == "exit":
                 _TERMINATE()
@@ -71,10 +72,7 @@ def BACKUP_PREVIEW(comparisonResults):
             except ValueError:
                 continue
 
-            if (
-                projectNumber < 1
-                or projectNumber > len(comparisonResults)
-            ):
+            if projectNumber < 1 or projectNumber > len(comparisonResults):
                 continue
 
             _INSPECT_PROJECT(
@@ -94,15 +92,15 @@ def BACKUP_PREVIEW(comparisonResults):
     # ------------------------------------------------------------
 
     if _HAS_DISABLED_ENTRIES(comparisonResults):
-
         while True:
             _CLEAR_SCREEN()
             _PRINT_PROJECT_SUMMARY(comparisonResults)
 
-            command = input(
-                "\nEnter project number to inspect "
-                "(number = inspect, exit = terminate): "
-            ).strip().lower()
+            command = (
+                input("\nEnter project number to inspect (number = inspect, exit = terminate): ")
+                .strip()
+                .lower()
+            )
 
             if command == "exit":
                 _TERMINATE()
@@ -122,10 +120,7 @@ def BACKUP_PREVIEW(comparisonResults):
             except ValueError:
                 continue
 
-            if (
-                projectNumber < 1
-                or projectNumber > len(comparisonResults)
-            ):
+            if projectNumber < 1 or projectNumber > len(comparisonResults):
                 continue
 
             _INSPECT_PROJECT(
@@ -160,6 +155,7 @@ def BACKUP_PREVIEW(comparisonResults):
 # Main project dashboard
 # ================================================================
 
+
 def _PRINT_PROJECT_SUMMARY(comparisonResults):
     """
     Print the main backup preview dashboard.
@@ -178,7 +174,6 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
     readyProjects = []
 
     for comparisonResult in comparisonResults:
-
         projectID = comparisonResult["projectID"]
 
         # --------------------------------------------------------
@@ -240,46 +235,27 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
     # ------------------------------------------------------------
 
     print()
-    print(
-        f"  Attention required : "
-        f"{len(attentionProjects):>2} projects"
-    )
+    print(f"  Attention required : {len(attentionProjects):>2} projects")
 
-    print(
-        f"  Disabled           : "
-        f"{len(disabledProjects):>2} projects"
-    )
+    print(f"  Disabled           : {len(disabledProjects):>2} projects")
 
-    print(
-        f"  Ready              : "
-        f"{len(readyProjects):>2} projects"
-    )
+    print(f"  Ready              : {len(readyProjects):>2} projects")
 
     # ------------------------------------------------------------
     # Attention required.
     # ------------------------------------------------------------
 
     if attentionProjects:
-
         print()
         print(f"{_BOLD}ATTENTION REQUIRED{_RESET}")
         print()
-        print(
-            f"{'#':>3}   "
-            f"{'PROJECT':<28} "
-            f"UNATTENDED"
-        )
+        print(f"{'#':>3}   {'PROJECT':<28} UNATTENDED")
         print("-" * _WIDTH)
 
         projectNumber = 1
 
         for entry in attentionProjects:
-
-            print(
-                f"{projectNumber:>3}   "
-                f"{entry['projectID']:<28} "
-                f"{entry['count']}"
-            )
+            print(f"{projectNumber:>3}   {entry['projectID']:<28} {entry['count']}")
 
             projectNumber += 1
 
@@ -288,15 +264,10 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
     # ------------------------------------------------------------
 
     if disabledProjects:
-
         print()
         print(f"{_BOLD}DISABLED / NOT ACTIVE{_RESET}")
         print()
-        print(
-            f"{'#':>3}   "
-            f"{'PROJECT':<28} "
-            f"STATUS"
-        )
+        print(f"{'#':>3}   {'PROJECT':<28} STATUS")
         print("-" * _WIDTH)
 
         # Continue numbering from the previous section.
@@ -305,12 +276,7 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
             projectNumber = 1
 
         for entry in disabledProjects:
-
-            print(
-                f"{projectNumber:>3}   "
-                f"{entry['projectID']:<28} "
-                f"{entry['reason']}"
-            )
+            print(f"{projectNumber:>3}   {entry['projectID']:<28} {entry['reason']}")
 
             projectNumber += 1
 
@@ -319,15 +285,10 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
     # ------------------------------------------------------------
 
     if readyProjects:
-
         print()
         print(f"{_BOLD}READY{_RESET}")
         print()
-        print(
-            f"{'#':>3}   "
-            f"{'PROJECT':<28} "
-            f"STATUS"
-        )
+        print(f"{'#':>3}   {'PROJECT':<28} STATUS")
         print("-" * _WIDTH)
 
         # Continue numbering from the previous section.
@@ -336,12 +297,7 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
             projectNumber = 1
 
         for entry in readyProjects:
-
-            print(
-                f"{projectNumber:>3}   "
-                f"{entry['projectID']:<28} "
-                f"READY"
-            )
+            print(f"{projectNumber:>3}   {entry['projectID']:<28} READY")
 
             projectNumber += 1
 
@@ -353,30 +309,15 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
     print("-" * _WIDTH)
 
     if _HAS_UNATTENDED_ITEMS(comparisonResults):
-
-        print(
-            "[number] Inspect project"
-            "                    [exit] Terminate"
-        )
+        print("[number] Inspect project                    [exit] Terminate")
 
     elif _HAS_DISABLED_ENTRIES(comparisonResults):
+        print("[number] Inspect project    [continue] Continue")
 
-        print(
-            "[number] Inspect project"
-            "    [continue] Continue"
-        )
-
-        print(
-            "                                      "
-            "[exit] Terminate"
-        )
+        print("                                      [exit] Terminate")
 
     else:
-
-        print(
-            "All checks passed."
-            "                           [exit] Terminate"
-        )
+        print("All checks passed.                           [exit] Terminate")
 
     print("-" * _WIDTH)
 
@@ -384,6 +325,7 @@ def _PRINT_PROJECT_SUMMARY(comparisonResults):
 # ================================================================
 # Project inspection
 # ================================================================
+
 
 def _INSPECT_PROJECT(comparisonResults, projectNumber):
     """
@@ -393,37 +335,25 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
     by the main dashboard.
     """
 
-    projectEntries = _GET_PROJECT_ENTRIES(
-        comparisonResults
-    )
+    projectEntries = _GET_PROJECT_ENTRIES(comparisonResults)
 
-    if (
-        projectNumber < 1
-        or projectNumber > len(projectEntries)
-    ):
+    if projectNumber < 1 or projectNumber > len(projectEntries):
         return
 
-    comparisonResult = projectEntries[
-        projectNumber - 1
-    ]
+    comparisonResult = projectEntries[projectNumber - 1]
 
     while True:
-
         _CLEAR_SCREEN()
 
         projectID = comparisonResult["projectID"]
 
         print()
-        print(
-            f"BACKUP PREVIEW > {projectID}"
-        )
+        print(f"BACKUP PREVIEW > {projectID}")
 
         print()
         print("=" * _WIDTH)
 
-        print(
-            f"PROJECT: {projectID}".center(_WIDTH)
-        )
+        print(f"PROJECT: {projectID}".center(_WIDTH))
 
         print("=" * _WIDTH)
 
@@ -432,24 +362,21 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
         # --------------------------------------------------------
 
         if comparisonResult.get("projectEnabled") is False:
-
             projectStatus = "PROJECT DISABLED"
 
-        elif _HAS_UNATTENDED_FOR_PROJECT(
-            comparisonResult
-        ):
-
+        elif _HAS_UNATTENDED_FOR_PROJECT(comparisonResult):
             projectStatus = "ATTENTION REQUIRED"
 
-        elif _COUNT_STATUS(
-            comparisonResult,
-            "DISABLED",
-        ) > 0:
-
+        elif (
+            _COUNT_STATUS(
+                comparisonResult,
+                "DISABLED",
+            )
+            > 0
+        ):
             projectStatus = "DISABLED ITEMS"
 
         else:
-
             projectStatus = "READY"
 
         backupCount = _COUNT_STATUS(
@@ -473,42 +400,22 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
         )
 
         print()
-        print(
-            f"  Status               : "
-            f"{projectStatus}"
-        )
+        print(f"  Status               : {projectStatus}")
 
-        print(
-            f"  Backup               : "
-            f"{backupCount}"
-        )
+        print(f"  Backup               : {backupCount}")
 
-        print(
-            f"  Disabled             : "
-            f"{disabledCount}"
-        )
+        print(f"  Disabled             : {disabledCount}")
 
-        print(
-            f"  Missing              : "
-            f"{missingCount}"
-        )
+        print(f"  Missing              : {missingCount}")
 
-        print(
-            f"  Unattended           : "
-            f"{unattendedCount}"
-        )
+        print(f"  Unattended           : {unattendedCount}")
 
         # --------------------------------------------------------
         # Item table.
         # --------------------------------------------------------
 
         print()
-        print(
-            f"{'#':>3}   "
-            f"{'ITEM':<32} "
-            f"{'CLASSIFICATION':<16} "
-            f"STATUS"
-        )
+        print(f"{'#':>3}   {'ITEM':<32} {'CLASSIFICATION':<16} STATUS")
 
         print("-" * _WIDTH)
 
@@ -516,7 +423,6 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
             comparisonResult["items"],
             start=1,
         ):
-
             itemName = _GET_ITEM_NAME(item)
 
             yamlItem = item.get("yamlItem")
@@ -529,12 +435,7 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
             else:
                 classification = "-"
 
-            print(
-                f"{index:>3}   "
-                f"{itemName:<32} "
-                f"{classification:<16} "
-                f"{item['status']}"
-            )
+            print(f"{index:>3}   {itemName:<32} {classification:<16} {item['status']}")
 
         # --------------------------------------------------------
         # Navigation.
@@ -543,11 +444,7 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
         print()
         print("-" * _WIDTH)
 
-        print(
-            "[number] Inspect item"
-            "   [b] Back"
-            "   [exit] Terminate"
-        )
+        print("[number] Inspect item   [b] Back   [exit] Terminate")
 
         print("-" * _WIDTH)
 
@@ -564,12 +461,7 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
         except ValueError:
             continue
 
-        if (
-            itemNumber < 1
-            or itemNumber > len(
-                comparisonResult["items"]
-            )
-        ):
+        if itemNumber < 1 or itemNumber > len(comparisonResult["items"]):
             continue
 
         _INSPECT_ITEM(
@@ -582,6 +474,7 @@ def _INSPECT_PROJECT(comparisonResults, projectNumber):
 # Item inspection
 # ================================================================
 
+
 def _INSPECT_ITEM(
     comparisonResult,
     itemNumber,
@@ -590,47 +483,29 @@ def _INSPECT_ITEM(
     Display detailed information for one item.
     """
 
-    item = comparisonResult["items"][
-        itemNumber - 1
-    ]
+    item = comparisonResult["items"][itemNumber - 1]
 
     itemName = _GET_ITEM_NAME(item)
 
     while True:
-
         _CLEAR_SCREEN()
 
         print()
-        print(
-            "BACKUP PREVIEW > "
-            f"{comparisonResult['projectID']} > "
-            f"{itemName}"
-        )
+        print(f"BACKUP PREVIEW > {comparisonResult['projectID']} > {itemName}")
 
         print()
         print("=" * _WIDTH)
 
-        print(
-            "ITEM DETAILS".center(_WIDTH)
-        )
+        print("ITEM DETAILS".center(_WIDTH))
 
         print("=" * _WIDTH)
 
         print()
-        print(
-            f"  Project : "
-            f"{comparisonResult['projectID']}"
-        )
+        print(f"  Project : {comparisonResult['projectID']}")
 
-        print(
-            f"  Item    : "
-            f"{itemName}"
-        )
+        print(f"  Item    : {itemName}")
 
-        print(
-            f"  Status  : "
-            f"{item['status']}"
-        )
+        print(f"  Status  : {item['status']}")
 
         # --------------------------------------------------------
         # Filesystem information.
@@ -640,44 +515,29 @@ def _INSPECT_ITEM(
         print("FILESYSTEM")
         print("-" * _WIDTH)
 
-        print(
-            f"Path : {item['itemLocation']}"
-        )
+        print(f"Path : {item['itemLocation']}")
 
-        filesystemItem = item.get(
-            "filesystemItem"
-        )
+        filesystemItem = item.get("filesystemItem")
 
         if filesystemItem is not None:
-
-            itemType = filesystemItem.get(
-                "type"
-            )
+            itemType = filesystemItem.get("type")
 
             if itemType is not None:
-                print(
-                    f"Type : {itemType}"
-                )
+                print(f"Type : {itemType}")
 
         # --------------------------------------------------------
         # YAML information.
         # --------------------------------------------------------
 
-        yamlItem = item.get(
-            "yamlItem"
-        )
+        yamlItem = item.get("yamlItem")
 
         if yamlItem is not None:
-
             print()
             print("YAML CONFIGURATION")
             print("-" * _WIDTH)
 
             for key, value in yamlItem.items():
-
-                print(
-                    f"{key:<20}: {value}"
-                )
+                print(f"{key:<20}: {value}")
 
         # --------------------------------------------------------
         # Status-specific explanation.
@@ -690,77 +550,37 @@ def _INSPECT_ITEM(
         status = item["status"]
 
         if status == "BACKUP":
+            print("This item is declared in YAML and enabled for backup.")
 
-            print(
-                "This item is declared in YAML "
-                "and enabled for backup."
-            )
-
-            print(
-                "This item will be included in "
-                "the backup."
-            )
+            print("This item will be included in the backup.")
 
         elif status == "DISABLED":
+            print("This item is declared in YAML.")
 
-            print(
-                "This item is declared in YAML."
-            )
+            print("itemEnabled is set to false.")
 
-            print(
-                "itemEnabled is set to false."
-            )
-
-            print(
-                "No backup will be taken for this item."
-            )
+            print("No backup will be taken for this item.")
 
         elif status == "UNATTENDED":
-
-            print(
-                "This filesystem item exists but "
-                "is not declared in YAML."
-            )
+            print("This filesystem item exists but is not declared in YAML.")
 
             print()
-            print(
-                "Backup cannot proceed until this "
-                "item is intentionally handled."
-            )
+            print("Backup cannot proceed until this item is intentionally handled.")
 
         elif status == "MISSING":
+            print("This item is declared in YAML but does not currently exist on the filesystem.")
 
-            print(
-                "This item is declared in YAML but "
-                "does not currently exist on the filesystem."
-            )
-
-            print(
-                "No backup will be taken for this item."
-            )
+            print("No backup will be taken for this item.")
 
         elif status == "DECLARED_CONTAINER":
-
-            print(
-                "This is a structural filesystem "
-                "container for declared YAML items."
-            )
+            print("This is a structural filesystem container for declared YAML items.")
 
         elif status.startswith("DECLARED-"):
+            declaringProject = status[len("DECLARED-") :]
 
-            declaringProject = status[
-                len("DECLARED-"):
-            ]
+            print("This filesystem item is declared by another project.")
 
-            print(
-                "This filesystem item is declared "
-                "by another project."
-            )
-
-            print(
-                f"Declaring project : "
-                f"{declaringProject}"
-            )
+            print(f"Declaring project : {declaringProject}")
 
         # --------------------------------------------------------
         # Navigation.
@@ -769,10 +589,7 @@ def _INSPECT_ITEM(
         print()
         print("-" * _WIDTH)
 
-        print(
-            "[b] Back                                      "
-            "[exit] Terminate"
-        )
+        print("[b] Back                                      [exit] Terminate")
 
         print("-" * _WIDTH)
 
@@ -788,6 +605,7 @@ def _INSPECT_ITEM(
 # ================================================================
 # Final disabled confirmation
 # ================================================================
+
 
 def _CONFIRM_DISABLED_BACKUP(comparisonResults):
     """
@@ -806,116 +624,71 @@ def _CONFIRM_DISABLED_BACKUP(comparisonResults):
     print()
     print("=" * _WIDTH)
 
-    print(
-        "BACKUP DECISION".center(_WIDTH)
-    )
+    print("BACKUP DECISION".center(_WIDTH))
 
     print("=" * _WIDTH)
 
     print()
-    print(
-        "All filesystem items are declared in YAML."
-    )
+    print("All filesystem items are declared in YAML.")
 
     print()
-    print(
-        "However, some declared projects or items "
-        "are disabled."
-    )
+    print("However, some declared projects or items are disabled.")
 
     print()
     print("DISABLED / NOT ACTIVE")
     print("-" * _WIDTH)
 
     for comparisonResult in comparisonResults:
+        projectID = comparisonResult["projectID"]
 
-        projectID = comparisonResult[
-            "projectID"
-        ]
-
-        if comparisonResult.get(
-            "projectEnabled"
-        ) is False:
-
+        if comparisonResult.get("projectEnabled") is False:
             print()
-            print(
-                f"Project: {projectID}"
-            )
+            print(f"Project: {projectID}")
 
-            print(
-                "    PROJECT DISABLED"
-            )
+            print("    PROJECT DISABLED")
 
             continue
 
-        disabledItems = [
-            item
-            for item in comparisonResult["items"]
-            if item["status"] == "DISABLED"
-        ]
+        disabledItems = [item for item in comparisonResult["items"] if item["status"] == "DISABLED"]
 
         if disabledItems:
-
             print()
-            print(
-                f"Project: {projectID}"
-            )
+            print(f"Project: {projectID}")
 
             for item in disabledItems:
-
-                print(
-                    f"    {_GET_ITEM_NAME(item)}"
-                )
+                print(f"    {_GET_ITEM_NAME(item)}")
 
     print()
     print("-" * _WIDTH)
 
-    print(
-        "These projects/items are intentionally "
-        "excluded from backup."
-    )
+    print("These projects/items are intentionally excluded from backup.")
 
     print()
-    print(
-        "No backup will be taken for them."
-    )
+    print("No backup will be taken for them.")
 
     print()
-    print(
-        "Proceed with backup of all ENABLED items?"
-    )
+    print("Proceed with backup of all ENABLED items?")
 
     print()
-    print(
-        "    [y] Yes, proceed"
-    )
+    print("    [y] Yes, proceed")
 
-    print(
-        "    [n] No, cancel"
-    )
+    print("    [n] No, cancel")
 
     print()
     print("-" * _WIDTH)
 
     while True:
-
         command = input("> ").strip().lower()
 
         if command == "y":
-
             print()
-            print(
-                "Backup confirmed by user."
-            )
+            print("Backup confirmed by user.")
 
             return True
 
         if command == "n":
-
             print()
-            print(
-                "Backup cancelled by user."
-            )
+            print("Backup cancelled by user.")
 
             return False
 
@@ -923,6 +696,7 @@ def _CONFIRM_DISABLED_BACKUP(comparisonResults):
 # ================================================================
 # Helper functions
 # ================================================================
+
 
 def _GET_PROJECT_ENTRIES(comparisonResults):
     """
@@ -935,45 +709,27 @@ def _GET_PROJECT_ENTRIES(comparisonResults):
     readyProjects = []
 
     for comparisonResult in comparisonResults:
-
-        if comparisonResult.get(
-            "projectEnabled"
-        ) is False:
-
-            disabledProjects.append(
-                comparisonResult
-            )
+        if comparisonResult.get("projectEnabled") is False:
+            disabledProjects.append(comparisonResult)
 
             continue
 
-        if _HAS_UNATTENDED_FOR_PROJECT(
-            comparisonResult
+        if _HAS_UNATTENDED_FOR_PROJECT(comparisonResult):
+            attentionProjects.append(comparisonResult)
+
+        elif (
+            _COUNT_STATUS(
+                comparisonResult,
+                "DISABLED",
+            )
+            > 0
         ):
-
-            attentionProjects.append(
-                comparisonResult
-            )
-
-        elif _COUNT_STATUS(
-            comparisonResult,
-            "DISABLED",
-        ) > 0:
-
-            disabledProjects.append(
-                comparisonResult
-            )
+            disabledProjects.append(comparisonResult)
 
         else:
+            readyProjects.append(comparisonResult)
 
-            readyProjects.append(
-                comparisonResult
-            )
-
-    return (
-        attentionProjects
-        + disabledProjects
-        + readyProjects
-    )
+    return attentionProjects + disabledProjects + readyProjects
 
 
 def _GET_ITEM_NAME(item):
@@ -984,12 +740,9 @@ def _GET_ITEM_NAME(item):
     if item.get("itemID") is not None:
         return item["itemID"]
 
-    filesystemItem = item.get(
-        "filesystemItem"
-    )
+    filesystemItem = item.get("filesystemItem")
 
     if filesystemItem is not None:
-
         return filesystemItem.get(
             "name",
             "<unknown>",
@@ -1006,11 +759,7 @@ def _COUNT_STATUS(
     Count items having the requested status.
     """
 
-    return sum(
-        1
-        for item in comparisonResult["items"]
-        if item["status"] == status
-    )
+    return sum(1 for item in comparisonResult["items"] if item["status"] == status)
 
 
 def _HAS_UNATTENDED_FOR_PROJECT(
@@ -1021,10 +770,13 @@ def _HAS_UNATTENDED_FOR_PROJECT(
     unattended item.
     """
 
-    return _COUNT_STATUS(
-        comparisonResult,
-        "UNATTENDED",
-    ) > 0
+    return (
+        _COUNT_STATUS(
+            comparisonResult,
+            "UNATTENDED",
+        )
+        > 0
+    )
 
 
 def _HAS_UNATTENDED_ITEMS(comparisonResults):
@@ -1034,10 +786,7 @@ def _HAS_UNATTENDED_ITEMS(comparisonResults):
     """
 
     return any(
-        _HAS_UNATTENDED_FOR_PROJECT(
-            comparisonResult
-        )
-        for comparisonResult in comparisonResults
+        _HAS_UNATTENDED_FOR_PROJECT(comparisonResult) for comparisonResult in comparisonResults
     )
 
 
@@ -1047,18 +796,16 @@ def _HAS_DISABLED_ENTRIES(comparisonResults):
     """
 
     for comparisonResult in comparisonResults:
-
-        if comparisonResult.get(
-            "projectEnabled"
-        ) is False:
-
+        if comparisonResult.get("projectEnabled") is False:
             return True
 
-        if _COUNT_STATUS(
-            comparisonResult,
-            "DISABLED",
-        ) > 0:
-
+        if (
+            _COUNT_STATUS(
+                comparisonResult,
+                "DISABLED",
+            )
+            > 0
+        ):
             return True
 
     return False

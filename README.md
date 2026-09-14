@@ -9,6 +9,8 @@ To run the code, you can prefer to set `alias` in `~/.bashrc` as `alias BackupSy
 ```python
 BackupSystem <mainConfigFile.yaml>
 ```
+Augument `--force` can be passed on
+
 **Note:**
 
 This `BackupSystem` uses `rsync` to effectively determine which files to be copied which saves time over ignoring unchanged files. This `rsync` may not be available in `Windows` or similar platform. make sure `rsync` is installed (verify as `rsync --version`) before proceeding.
@@ -27,15 +29,20 @@ Purpose: Automated research backup system for CFD/OpenFOAM/DAFoam projects with 
 # Changes Log
 
 ## Changes (v2.0 to v3.0)
-- Added feature to monitor untracked files, to avoid any human error during backup, this is triggerd by monitoring `itemEnabled`. All the folders inside the projectID has to be declared in YAML either as `itemEnabled = True` or `itemEnabled = False`
-- Implemented doxygen for documentation and ruff formatting
+- Added first-level filesystem monitoring to detect unattended files/folders and reduce the risk of missing important research data.
+- Added explicit `itemEnabled` handling: enabled items are backed up, while disabled items are intentionally excluded and shown during the final audit.
+- Added cross-project declaration checking so items declared under another project are not incorrectly reported as unattended.
+- Added automatic backup handling for `.git` directories so Git history is retained without requiring a separate YAML item.
+- Added a final interactive backup audit showing project, item, classification, and backup status before execution.
+- Added `--force` mode for testing, allowing the schedule check to be bypassed without bypassing safety checks or the final audit.
+- Implemented Doxygen documentation and Ruff formatting.
 
 ## Changes (v1.0 to v2.0)
 - Added `executeCommand`, `runCommand` for running certain script before backup inside item folder
 - Check space (inclusive of `marginSpace`) in HDD and terminate when space is free space is less than `marginSpace`. Can be toggled with `verifyHDDSpace`
 - Combines multiple YAML files to parent YAML for modularity
 - Removed `syncPolicy: protect` as it didn't make sense later. Either take backup regularly or choose `syncPolicy: manual`
-- Removed `verifyBack` as this was not used anywhere. The logs files reveal these verification
+- Removed `verifyBackup` as this was not used anywhere. The logs files reveal these verification
 
 ---
 
@@ -64,13 +71,17 @@ The system is YAML-driven, meaning users only modify the YAML configuration file
 The backup engine will automatically:
 
 - Gather multiple YAML files
+- Validate the YAML configuration
 - Check backup schedules
+- Scan intended project locations for unattended files/folders
 - Check HDD space
 - Apply sync policies
 - Copy selected files/folders
+- Preserve Git history through automatic `.git` backup
 - Update metadata
 - Generate logs
 - Maintain repository information
+- Present a final backup audit before execution
 
 ---
 
@@ -103,13 +114,10 @@ items:
     itemComment: Easy tag to understand which item is under consideration.
     itemClassification: validation # validation/parametric/development/solver/automation
     itemLocation: <path/to/folder-or-file> # for files, excludeFolders and excludeFiles makes no sense
-    itemEnabled: true # Child level- true/ false
-    executeCommand: true # perform runCommand- true/ false (default)
-    runCommand: ["<bash command or run script here>"]
-    syncPolicy: always # always (backup when script is run)/ manual (manual backup)
+    itemEnabled: true # Child level- true / false
+    syncPolicy: always # always (backup when project is due) / manual
     excludeFolders: [<path/to/folder1>, <path/to/folder2>, "folder*"] # can be empty as []
-    excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] # use " " for parsing
-    retainLatestTime: true    
+    excludeFiles: [<path/to/file1>, <path/to/file2>, "file*.py"] # can be empty as []
 
 ```
 
@@ -156,9 +164,11 @@ AdjointSolver
 
 ## itemID
 
-Unique item identifier.
+Identifier used to identify an item within a project.
 
-Must never be duplicated.
+Normally itemIDs should be unique. The current implementation permits
+`Archive` to be used in multiple projects where the same archive structure
+is intentionally shared.
 
 Examples:
 
@@ -215,6 +225,50 @@ Enables/disables item backup.
 `always`: Backup whenever project is due.
 
 `manual`: User-controlled.
+
+---
+
+## Filesystem monitoring and backup safety
+
+BackupSystem checks the first level of the intended project scan locations
+before executing a backup.
+
+- `BACKUP`: explicitly declared and enabled YAML item.
+- `DISABLED`: explicitly declared but disabled YAML item.
+- `DECLARED-<projectID>`: declared or covered by another project.
+- `DECLARED_CONTAINER`: contains YAML-declared items belonging to the current project.
+- `MASTER_CONTAINER`: structural parent of a declared item.
+- `AUTO-BACKUP`: system-managed item such as `.git`.
+- `UNATTENDED`: filesystem item not declared or covered by YAML.
+
+An `UNATTENDED` item requires user attention and prevents the backup from
+continuing. BackupSystem does not automatically modify the YAML configuration
+to resolve such cases.
+
+---
+
+## Final backup audit
+
+Before the backup engine starts, BackupSystem displays the complete project
+and item audit, including item classifications and statuses. The user must
+explicitly confirm the backup.
+
+This final confirmation is performed even when all projects and items are
+ready, providing a final opportunity to verify the backup intent.
+
+---
+
+## Force mode
+
+For testing, the schedule check can be bypassed using:
+
+```bash
+python3 main.py <configFile.yaml> --force
+```
+
+`--force` only bypasses the normal due-project schedule. It does not bypass
+filesystem safety checks, YAML validation, HDD-space verification, or the
+final backup confirmation.
 
 ---
 
@@ -304,11 +358,19 @@ Run:
 
 Step 5
 
+Review the final backup audit and confirm the backup.
+
+Step 6
+
 Verify:
 
 - logs
 - metadata
 - backups
+
+For testing without waiting for a project to become due:
+
+`python3 main.py <configFile.yaml> --force`
 
 ---
 
@@ -316,10 +378,10 @@ Verify:
 
 Planned features:
 
-- Work on `retainLatestTime` for retaining OpenFOAM solution folders
-- Option for `purgeWrite` or `forced` write with flags to force backup again
-- Implementation of doxygen- as code is getting complicated, doxygen should give some idea on code architecture
-- Refactor the whole code into presentable form
+- Work on retaining selected OpenFOAM solution folders
+- Improve backup progress UX with a progress bar and a rolling list of recently copied files
+- Further improve backup failure/error reporting
+- Refactor the whole code into a clean, presentable form
 
 ---
 

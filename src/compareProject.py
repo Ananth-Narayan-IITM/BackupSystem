@@ -2,7 +2,8 @@
 
 from pathlib import Path
 
-_SYSTEM_AUTO_BACKUP_NAMES = {".git",".venv"}
+_SYSTEM_AUTO_BACKUP_NAMES = {".git", ".venv"}
+
 
 def _BUILD_GLOBAL_DECLARATIONS(allProjects):
     """
@@ -23,21 +24,14 @@ def _BUILD_GLOBAL_DECLARATIONS(allProjects):
     declarations = {}
 
     for project in allProjects:
-
         projectID = project["projectID"]
 
         for item in project["items"]:
+            itemLocation = Path(item["itemLocation"]).resolve()
 
-            itemLocation = Path(
-                item["itemLocation"]
-            ).resolve()
-
-            pathString = str(
-                itemLocation
-            )
+            pathString = str(itemLocation)
 
             if pathString not in declarations:
-
                 declarations[pathString] = []
 
             declarations[pathString].append(
@@ -86,9 +80,7 @@ def _GET_DECLARING_PROJECT(
     )
 
     for declaration in exactDeclarations:
-
         if declaration["projectID"] != currentProjectID:
-
             return declaration["projectID"]
 
     # ------------------------------------------------------------
@@ -97,36 +89,26 @@ def _GET_DECLARING_PROJECT(
     # ------------------------------------------------------------
 
     for declaredPath, declarations in globalDeclarations.items():
-
-        declaredDirectory = Path(
-            declaredPath
-        )
+        declaredDirectory = Path(declaredPath)
 
         if not declaredDirectory.is_dir():
-
             continue
 
         if filesystemPath == declaredDirectory:
-
             continue
 
         try:
-
-            filesystemPath.relative_to(
-                declaredDirectory
-            )
+            filesystemPath.relative_to(declaredDirectory)
 
         except ValueError:
-
             continue
 
         for declaration in declarations:
-
             if declaration["projectID"] != currentProjectID:
-
                 return declaration["projectID"]
 
     return None
+
 
 def _IS_MASTER_CONTAINER(
     filesystemPath,
@@ -161,10 +143,7 @@ def _IS_MASTER_CONTAINER(
     filesystemPath = filesystemPath.resolve()
 
     for declaredPath in globalDeclarations:
-
-        declaredDirectory = Path(
-            declaredPath
-        ).resolve()
+        declaredDirectory = Path(declaredPath).resolve()
 
         # Only directory declarations can create a master container.
         if not declaredDirectory.is_dir():
@@ -177,6 +156,7 @@ def _IS_MASTER_CONTAINER(
         return True
 
     return False
+
 
 def _IS_AUTO_BACKUP(filesystemPath):
     """
@@ -195,6 +175,7 @@ def _IS_AUTO_BACKUP(filesystemPath):
     """
 
     return filesystemPath.name in _SYSTEM_AUTO_BACKUP_NAMES
+
 
 def COMPARE_PROJECT(
     project,
@@ -236,9 +217,7 @@ def COMPARE_PROJECT(
     # Build global declaration map.
     # ------------------------------------------------------------
 
-    globalDeclarations = _BUILD_GLOBAL_DECLARATIONS(
-        allProjects
-    )
+    globalDeclarations = _BUILD_GLOBAL_DECLARATIONS(allProjects)
 
     # ------------------------------------------------------------
     # Build dictionary of current project's YAML items.
@@ -247,10 +226,7 @@ def COMPARE_PROJECT(
     yamlItems = {}
 
     for item in project["items"]:
-
-        itemLocation = Path(
-            item["itemLocation"]
-        ).resolve()
+        itemLocation = Path(item["itemLocation"]).resolve()
 
         yamlItems[str(itemLocation)] = item
 
@@ -261,10 +237,7 @@ def COMPARE_PROJECT(
     filesystemItems = {}
 
     for item in scanResult["items"]:
-
-        itemLocation = Path(
-            item["path"]
-        ).resolve()
+        itemLocation = Path(item["path"]).resolve()
 
         filesystemItems[str(itemLocation)] = item
 
@@ -277,16 +250,10 @@ def COMPARE_PROJECT(
     yamlDirectories = set()
 
     for itemLocation, item in yamlItems.items():
-
-        path = Path(
-            itemLocation
-        )
+        path = Path(itemLocation)
 
         if path.is_dir():
-
-            yamlDirectories.add(
-                path
-            )
+            yamlDirectories.add(path)
 
     # ------------------------------------------------------------
     # Compare YAML items.
@@ -295,10 +262,7 @@ def COMPARE_PROJECT(
     comparisonItems = []
 
     for itemLocation, item in yamlItems.items():
-
-        yamlPath = Path(
-            itemLocation
-        )
+        yamlPath = Path(itemLocation)
 
         # --------------------------------------------------------
         # YAML item exists.
@@ -308,23 +272,16 @@ def COMPARE_PROJECT(
         # --------------------------------------------------------
 
         if yamlPath.exists():
-
             if item["itemEnabled"]:
-
                 status = "BACKUP"
 
             else:
-
                 status = "DISABLED"
 
             filesystemItem = {
                 "name": yamlPath.name,
                 "path": str(yamlPath),
-                "type": (
-                    "directory"
-                    if yamlPath.is_dir()
-                    else "file"
-                ),
+                "type": ("directory" if yamlPath.is_dir() else "file"),
             }
 
             comparisonItems.append(
@@ -358,17 +315,13 @@ def COMPARE_PROJECT(
     # ------------------------------------------------------------
 
     for itemLocation, filesystemItem in filesystemItems.items():
-
-        filesystemPath = Path(
-            itemLocation
-        )
+        filesystemPath = Path(itemLocation)
 
         # --------------------------------------------------------
         # Exact current-project YAML declaration.
         # --------------------------------------------------------
 
         if itemLocation in yamlItems:
-
             continue
 
         # --------------------------------------------------------
@@ -380,27 +333,20 @@ def COMPARE_PROJECT(
         insideCurrentProjectDirectory = False
 
         for yamlDirectory in yamlDirectories:
-
             if filesystemPath == yamlDirectory:
-
                 continue
 
             try:
-
-                filesystemPath.relative_to(
-                    yamlDirectory
-                )
+                filesystemPath.relative_to(yamlDirectory)
 
                 insideCurrentProjectDirectory = True
 
                 break
 
             except ValueError:
-
                 pass
 
         if insideCurrentProjectDirectory:
-
             continue
 
         # --------------------------------------------------------
@@ -415,10 +361,7 @@ def COMPARE_PROJECT(
         )
 
         if declaringProject is not None:
-
-            status = (
-                f"DECLARED-{declaringProject}"
-            )
+            status = f"DECLARED-{declaringProject}"
 
             comparisonItems.append(
                 {
@@ -442,25 +385,17 @@ def COMPARE_PROJECT(
         containsYamlItem = False
 
         if filesystemItem["type"] == "directory":
-
             for yamlLocation in yamlItems:
-
-                yamlPath = Path(
-                    yamlLocation
-                )
+                yamlPath = Path(yamlLocation)
 
                 try:
-
-                    yamlPath.relative_to(
-                        filesystemPath
-                    )
+                    yamlPath.relative_to(filesystemPath)
 
                     containsYamlItem = True
 
                     break
 
                 except ValueError:
-
                     pass
 
         # ------------------------------------------------------------
@@ -470,22 +405,18 @@ def COMPARE_PROJECT(
         if _IS_AUTO_BACKUP(
             filesystemPath,
         ):
-
             status = "AUTO-BACKUP"
 
         elif containsYamlItem:
-
             status = "DECLARED_CONTAINER"
 
         elif _IS_MASTER_CONTAINER(
             filesystemPath,
             globalDeclarations,
         ):
-
             status = "MASTER_CONTAINER"
 
         else:
-
             status = "UNATTENDED"
 
         comparisonItems.append(
@@ -505,18 +436,12 @@ def COMPARE_PROJECT(
     # project explicitly owns the item.
     # ------------------------------------------------------------
 
-    unattendedItems = [
-        item
-        for item in comparisonItems
-        if item["status"] == "UNATTENDED"
-    ]
+    unattendedItems = [item for item in comparisonItems if item["status"] == "UNATTENDED"]
 
     if unattendedItems:
-
         projectStatus = "ATTENTION"
 
     else:
-
         projectStatus = "OK"
 
     # ------------------------------------------------------------
@@ -546,30 +471,18 @@ def PRINT_COMPARISON_RESULT(comparisonResult):
     print("PROJECT COMPARISON")
     print("=" * 60)
 
-    print(
-        f"\nProject : "
-        f"{comparisonResult['projectID']}"
-    )
+    print(f"\nProject : {comparisonResult['projectID']}")
 
     print("\nItems:")
 
     if not comparisonResult["items"]:
-
         print("    <none>")
 
     else:
-
         for item in comparisonResult["items"]:
+            print(f"    {item['status']:<25}{item['itemLocation']}")
 
-            print(
-                f"    {item['status']:<25}"
-                f"{item['itemLocation']}"
-            )
-
-    print(
-        f"\nStatus  : "
-        f"{comparisonResult['projectStatus']}"
-    )
+    print(f"\nStatus  : {comparisonResult['projectStatus']}")
 
     print("=" * 60)
 

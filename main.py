@@ -40,6 +40,12 @@ def GET_ARGUMENTS():
 
     parser.add_argument("yamlFile", help="Path to master YAML configuration file")
 
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force backup of all enabled projects regardless of schedule",
+    )
+
     return parser.parse_args()
 
 
@@ -66,7 +72,6 @@ def MAIN():
     comparisonResults = []
 
     for project in yamlDictionary["projects"]:
-
         projectID = project["projectID"]
 
         # ------------------------------------------------------------
@@ -78,7 +83,6 @@ def MAIN():
         # ------------------------------------------------------------
 
         if not project["projectEnabled"]:
-
             comparisonResults.append(
                 {
                     "projectID": projectID,
@@ -101,9 +105,10 @@ def MAIN():
 
         # ------------------------------------------------------------
         # Only scan enabled projects which are due for backup.
+        #
+        # --force bypasses the schedule check for testing.
         # ------------------------------------------------------------
-
-        if projectID not in scheduleSummary["dueProjects"]:
+        if not arguments.force and projectID not in scheduleSummary["dueProjects"]:
             continue
 
         scanResult = scanProject(project)
@@ -116,16 +121,13 @@ def MAIN():
 
         comparisonResult["projectEnabled"] = True
 
-        comparisonResults.append(
-            comparisonResult
-        )
+        comparisonResults.append(comparisonResult)
 
     # ------------------------------------------------------------
     # Backup preview.
     # ------------------------------------------------------------
 
     backupComment = BACKUP_PREVIEW(comparisonResults)
-
 
     if backupComment is False:
         return
